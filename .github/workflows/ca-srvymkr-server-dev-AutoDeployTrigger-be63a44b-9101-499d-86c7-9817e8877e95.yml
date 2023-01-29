@@ -4,14 +4,13 @@ name: Trigger auto deployment for ca-srvymkr-server-dev
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches: 
-      [ develop ]
+    branches: [develop]
     paths:
-    - '//**'
-    - '.github/workflows/ca-srvymkr-server-dev-AutoDeployTrigger-be63a44b-9101-499d-86c7-9817e8877e95.yml'
+      - '//**'
+      - '.github/workflows/ca-srvymkr-server-dev-AutoDeployTrigger-be63a44b-9101-499d-86c7-9817e8877e95.yml'
 
-  # Allow mannually trigger 
-  workflow_dispatch:      
+  # Allow mannually trigger
+  workflow_dispatch:
 
 jobs:
   build:
@@ -36,20 +35,18 @@ jobs:
         with:
           push: true
           tags: crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
-          file: /Dockerfile
-          context: /
-
+          file: ./Dockerfile
+          context: ./
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.CASRVYMKRSERVERDEV_AZURE_CREDENTIALS }}
-
 
       - name: Deploy to containerapp
         uses: azure/CLI@v1
