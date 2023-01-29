@@ -5,7 +5,7 @@ const app = express();
 app.get('/', (req, res) => {
   res.send(
     {
-      version: "1.0.4",
+      version: "1.0.5",
       message: 'Hello from DEV branch of a serverless containerized and continuously deployed Servey Maker!'
     }
   );
