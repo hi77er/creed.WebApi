@@ -40,8 +40,7 @@ jobs:
           file: ./Dockerfile
           context: ./
 
-
-  deploy:
+  deploy-dev:
     runs-on: ubuntu-latest
     needs: build
 
@@ -60,8 +59,7 @@ jobs:
             az containerapp registry set -n ca-srvymkr-server-dev -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_PASSWORD }}
             az containerapp update -n ca-srvymkr-server-dev -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
 
-
-  deploy:
+  deploy-prod:
     runs-on: ubuntu-latest
     needs: build
 
