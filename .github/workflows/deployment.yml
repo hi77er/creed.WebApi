@@ -15,8 +15,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+      - run: npm install
+      - run: npm run build --if-present
+      - run: npm run test
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Checkout to the branch
@@ -36,13 +50,15 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
+          tags: crtestinggeneral.azurecr.io/srvymkr:latest
           file: ./Dockerfile
           context: ./
 
   deploy-dev:
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - test
+      - build-image
 
     if: github.ref == 'refs/heads/develop'
     steps:
@@ -57,11 +73,13 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ca-srvymkr-server-dev -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_PASSWORD }}
-            az containerapp update -n ca-srvymkr-server-dev -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
+            az containerapp update -n ca-srvymkr-server-dev -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:lastest
 
   deploy-prod:
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - test
+      - build-image
 
     if: github.ref == 'refs/heads/master'
     steps:
@@ -76,4 +94,4 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ca-srvymkr-server-prod -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_PASSWORD }}
-            az containerapp update -n ca-srvymkr-server-prod -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
+            az containerapp update -n ca-srvymkr-server-prod -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:latest
