@@ -51,7 +51,7 @@ test:
           node-version: '16.x'
       - run: npm install
       - run: npm run build --if-present
-      - run: npm test
+      - run: npm run test
 
   deploy-dev:
     runs-on: ubuntu-latest
