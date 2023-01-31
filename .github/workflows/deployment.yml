@@ -36,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
+          tags: crtestinggeneral.azurecr.io/srvymkr:latest
           file: ./Dockerfile
           context: ./
 
@@ -70,11 +70,10 @@ jobs:
       - name: Deploy to containerapp
         uses: azure/CLI@v1
         with:
-          azcliversion: 2.44.1
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ca-srvymkr-server-dev -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_PASSWORD }}
-            az containerapp update -n ca-srvymkr-server-dev -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
+            az containerapp update -n ca-srvymkr-server-dev -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:lastest
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -95,4 +94,4 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ca-srvymkr-server-prod -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_PASSWORD }}
-            az containerapp update -n ca-srvymkr-server-prod -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:${{ github.sha }}
+            az containerapp update -n ca-srvymkr-server-prod -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr:latest
