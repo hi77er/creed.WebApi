@@ -88,8 +88,6 @@ jobs:
         with:
           creds: ${{ secrets.CASRVYMKRSERVERPROD_AZURE_CREDENTIALS }}
 
-      # az containerapp revision restart - is needed when new image has the same tag
-      # (currently tag is always set to be "latest")
       - name: Deploy to containerapp
         uses: azure/CLI@v1
         with:
