@@ -42,7 +42,7 @@ app.get(
 app.get('/', (req, res) => {
   res.send(
     {
-      version: "1.0.11",
+      version: "1.0.12",
       message: 'Hello from a serverless containerized and continuously deployed Servey Maker!',
       oauth: 'Google'
     }
