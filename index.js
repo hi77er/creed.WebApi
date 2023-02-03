@@ -1,14 +1,14 @@
+require('dotenv').config();
 const express = require("express");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const keys = require("./config/keys");
 const app = express();
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: keys.googleClientID,
-      clientSecret: keys.googleClientSecret,
+      clientID: process.env.googleClientID,
+      clientSecret: process.env.googleClientSecret,
       callbackURL: '/oauth/google/callback'
     },
     (accessToken, refreshToken, profile, done) => {
@@ -42,8 +42,9 @@ app.get(
 app.get('/', (req, res) => {
   res.send(
     {
-      version: "1.0.10",
-      message: 'Hello from a serverless containerized and continuously deployed Servey Maker!'
+      version: "1.0.12",
+      message: 'Hello from a serverless containerized and continuously deployed Servey Maker!',
+      oauth: 'Google'
     }
   );
 })
