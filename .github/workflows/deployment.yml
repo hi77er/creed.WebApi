@@ -67,6 +67,8 @@ jobs:
         with:
           creds: ${{ secrets.CASRVYMKRSERVERDEV_AZURE_CREDENTIALS }}
 
+      # az containerapp revision restart - is needed when new image has the same tag
+      # (currently tag is always set to be "latest")
       - name: Deploy to containerapp
         uses: azure/CLI@v1
         with:
@@ -74,6 +76,7 @@ jobs:
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ca-srvymkr-server-dev -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_PASSWORD }}
             az containerapp update -n ca-srvymkr-server-dev -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr-server:latest
+            az containerapp revision restart --revision "ca-srvymkr-server-prod--revprod" --resource-group "rg-personal-test-general"
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -88,6 +91,8 @@ jobs:
         with:
           creds: ${{ secrets.CASRVYMKRSERVERPROD_AZURE_CREDENTIALS }}
 
+      # az containerapp revision restart - is needed when new image has the same tag
+      # (currently tag is always set to be "latest")
       - name: Deploy to containerapp
         uses: azure/CLI@v1
         with:
@@ -95,3 +100,4 @@ jobs:
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ca-srvymkr-server-prod -g rg-personal-test-general --server crtestinggeneral.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_PASSWORD }}
             az containerapp update -n ca-srvymkr-server-prod -g rg-personal-test-general --image crtestinggeneral.azurecr.io/srvymkr-server:latest
+            az containerapp revision restart --revision "ca-srvymkr-server-prod--revdev" --resource-group "rg-personal-test-general"
