@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerapps_ca_srvymkr_mongo_dev_name": {
+            "value": null
+        },
+        "containerapps_ca_srvymkr_server_dev_name": {
+            "value": null
+        },
+        "managedEnvironments_cae_srvymkr_dev_name": {
+            "value": null
+        },
+        "containerapps_ca_srvymkr_server_prod_name": {
+            "value": null
+        },
+        "managedEnvironments_cae_srvymkr_prod_name": {
+            "value": null
+        },
+        "registries_CRTestingGeneral_name": {
+            "value": null
+        },
+        "databaseAccounts_cfm_personal_test_general_name": {
+            "value": null
+        },
+        "workspaces_workspacergpersonaltestgeneral9544_name": {
+            "value": null
+        },
+        "workspaces_workspacergpersonaltestgenerala652_name": {
+            "value": null
+        }
+    }
+}

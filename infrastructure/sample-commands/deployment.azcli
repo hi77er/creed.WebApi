@@ -1,0 +1,18 @@
+##  Before creating a new Resource Group and populating it with the recources described 
+##  in the Bicep Files, make sure the Resource Group doesn't exist:
+az group delete --name rg-srvymkr-training 
+
+##  Azure Key Vaults are usually soft-deleted. Make sure Key Vault with the name 
+##  decribed in the Bicep Files, doesn't exist in the Deleted Key Vaults list.
+az keyvault purge --name srvymkr-key-vault
+
+##  Bicep command "deployment group create" will not create the Resource Group if 
+##  it doesn't exist. Create it instead:
+az group create --name rg-srvymkr-training --location westeurope
+
+##  Execute Resource-Group Scoped Deployment of Core Infrastructure
+##  Note: Default MS Container App (tagged latest) image will be used for the new Container Apps.
+az deployment group create --resource-group rg-srvymkr-training --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
+
+##  Test (WHAT-IF) Resource-Group Scoped Deployment of Core Infrastructure
+## az deployment group what-if --resource-group rg-srvymkr-training --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
