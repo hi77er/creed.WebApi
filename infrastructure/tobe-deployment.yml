@@ -74,9 +74,9 @@ jobs:
         with:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
-            az containerapp registry set -n srvymkr-server-dev-ca -g rg-personal-test-general --server srvymkracr.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_PASSWORD }}
-            az containerapp update -n srvymkr-server-dev-ca -g rg-personal-test-general --image srvymkracr.azurecr.io/srvymkr-server-image:latest
-            az containerapp revision restart --revision "srvymkr-server-dev-ca--revdev" --resource-group "rg-personal-test-general"
+            az containerapp registry set -n srvymkr-server-dev-ca -g rg-srvymkr-training --server srvymkracr.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERDEV_REGISTRY_PASSWORD }}
+            az containerapp update -n srvymkr-server-dev-ca -g rg-srvymkr-training --image srvymkracr.azurecr.io/srvymkr-server-image:latest
+            az containerapp revision restart --revision "srvymkr-server-dev-ca--revision" --resource-group "rg-srvymkr-training"
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -98,6 +98,6 @@ jobs:
         with:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
-            az containerapp registry set -n srvymkr-server-prod-ca -g rg-personal-test-general --server srvymkracr.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_PASSWORD }}
-            az containerapp update -n srvymkr-server-prod-ca -g rg-personal-test-general --image srvymkracr.azurecr.io/srvymkr-server-image:latest
-            az containerapp revision restart --revision "srvymkr-server-prod-ca--revprod" --resource-group "rg-personal-test-general"
+            az containerapp registry set -n srvymkr-server-prod-ca -g rg-srvymkr-training --server srvymkracr.azurecr.io --username  ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_USERNAME }} --password ${{ secrets.CASRVYMKRSERVERPROD_REGISTRY_PASSWORD }}
+            az containerapp update -n srvymkr-server-prod-ca -g rg-srvymkr-training --image srvymkracr.azurecr.io/srvymkr-server-image:latest
+            az containerapp revision restart --revision "srvymkr-server-prod-ca--revision" --resource-group "rg-srvymkr-training"
