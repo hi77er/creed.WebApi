@@ -1,4 +1,4 @@
-name: Trigger auto deployment
+name: Srvymkr-Server Auto Deployment
 
 # When this action will be executed
 on:
