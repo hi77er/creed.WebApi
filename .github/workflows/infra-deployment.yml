@@ -48,26 +48,26 @@ jobs:
           templateFile: ./infrastructure/bicep/main.bicep
           parameters: ./infrastructure/bicep/params.json
   
-  deploy-infrastructure:
-    needs: [preview-infrastructure]
-    runs-on: ubuntu-latest
+  # deploy-infrastructure:
+  #   needs: [preview-infrastructure]
+  #   runs-on: ubuntu-latest
 
-    steps:
-      # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
-      - uses: actions/checkout@v3
+  #   steps:
+  #     # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
+  #     - uses: actions/checkout@v3
       
-      # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
-      # --scopes/resourceGroups/
-      - name: Login to Azure
-        uses: azure/login@v1.4.3
-        with:
-          creds: ${{ secrets.CASRVYMKRSERVERDEV_AZURE_CREDENTIALS }}
+  #     # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
+  #     # --scopes/resourceGroups/
+  #     - name: Login to Azure
+  #       uses: azure/login@v1.4.3
+  #       with:
+  #         creds: ${{ secrets.CASRVYMKRSERVERDEV_AZURE_CREDENTIALS }}
       
-      - name: Deploy Infrastructure
-        uses: azure/arm-deploy@v1
-        with:
-          subscriptionId: $SUBSCRIPTION_ID
-          resourceGroupName: $RESOURCE_GROUP_NAME
-          template: ./infrastructure/bicep/main.bicep
-          parameters: ./infrastructure/bicep/params.json
-          failOnStdErr: false
+  #     - name: Deploy Infrastructure
+  #       uses: azure/arm-deploy@v1
+  #       with:
+  #         subscriptionId: $SUBSCRIPTION_ID
+  #         resourceGroupName: $RESOURCE_GROUP_NAME
+  #         template: ./infrastructure/bicep/main.bicep
+  #         parameters: ./infrastructure/bicep/params.json
+  #         failOnStdErr: false
