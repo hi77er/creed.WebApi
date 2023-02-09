@@ -24,7 +24,7 @@ jobs:
       # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
       # --scopes/resourceGroups/
       - name: Login to Azure
-        uses: azure/login@v1.4.3
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
       
@@ -59,7 +59,7 @@ jobs:
   #     # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
   #     # --scopes/resourceGroups/
   #     - name: Login to Azure
-  #       uses: azure/login@v1.4.3
+  #       uses: azure/login@v1
   #       with:
   #         creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
       
