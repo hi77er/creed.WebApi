@@ -1,0 +1,73 @@
+name: Trigger auto deployment
+
+# When this action will be executed
+on:
+  # Allow mannually trigger
+  workflow_dispatch:
+
+# SUBSCRIPTION_ID should better be placed in a secret
+env:
+  SUBSCRIPTION_ID: "e7907eae-35a0-4e50-b1af-97cd81fce8c4"
+  RESOURCE_GROUP_NAME: "rg-srvymkr-training"
+  REGION_LOCATION_NAME: "westeurope"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  preview-infrastructure-changes:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
+      - uses: actions/checkout@v3
+      
+      # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
+      # --scopes/resourceGroups/
+      - name: Login to Azure
+        uses: azure/login@v1.4.3
+        with:
+          creds: ${{ secrets.CASRVYMKRSERVERDEV_AZURE_CREDENTIALS }}
+      
+      # If the Resource Group exists before this script gets executed it will throw an error
+      # Execute a script to delete the resource group (alongside with all resources in it)
+      # The Bicep will recreate those resources later.
+      #   az group delete --name rg-srvymkr-training
+      # Deleting the RG will mark the Key Vault as Deleted but not delete it. Purge it with this command:
+      #   az keyvault purge --name srvymkr-key-vault 
+      - name: Create Resource Group
+        uses: Azure/cli@v1.0.6
+        with:
+          inlineScript: | 
+            az group create --name $RESOURCE_GROUP_NAME --location $REGION_LOCATION_NAME 
+      
+      - name: Preview Infrastructure Changes
+        uses: Azure/deployment-what-if-action@v1.0.0
+        with:
+          subscription: $SUBSCRIPTION_ID
+          resourceGroup: $RESOURCE_GROUP_NAME
+          templateFile: ./infrastructure/bicep/main.bicep
+          parameters: ./infrastructure/bicep/params.json
+  
+  deploy-infrastructure:
+    needs: [preview-infrastructure]
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
+      - uses: actions/checkout@v3
+      
+      # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
+      # --scopes/resourceGroups/
+      - name: Login to Azure
+        uses: azure/login@v1.4.3
+        with:
+          creds: ${{ secrets.CASRVYMKRSERVERDEV_AZURE_CREDENTIALS }}
+      
+      - name: Deploy Infrastructure
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: $SUBSCRIPTION_ID
+          resourceGroupName: $RESOURCE_GROUP_NAME
+          template: ./infrastructure/bicep/main.bicep
+          parameters: ./infrastructure/bicep/params.json
+          failOnStdErr: false
