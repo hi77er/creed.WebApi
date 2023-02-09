@@ -41,13 +41,11 @@ jobs:
             az group create --name $RESOURCE_GROUP_NAME --location $REGION_LOCATION_NAME 
       
       - name: Preview Infrastructure Changes
-        uses: Azure/deployment-what-if-action@v1.0.0
+        uses: Azure/cli@v1.0.6
         with:
-          subscription: $SUBSCRIPTION_ID
-          resourceGroup: $RESOURCE_GROUP_NAME
-          templateFile: ./infrastructure/bicep/main.bicep
-          parametersFile: ./infrastructure/bicep/params.json
-  
+          inlineScript: |
+            az deployment group what-if resource-group $RESOURCE_GROUP_NAME subscription $SUBSCRIPTION_ID --template-file ./infrastructure/bicep/main.bicep parameters: ./infrastructure/bicep/params.json
+          
   # deploy-infrastructure:
   #   needs: [preview-infrastructure]
   #   runs-on: ubuntu-latest
