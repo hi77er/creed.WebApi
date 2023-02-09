@@ -46,7 +46,7 @@ jobs:
           subscription: $SUBSCRIPTION_ID
           resourceGroup: $RESOURCE_GROUP_NAME
           templateFile: ./infrastructure/bicep/main.bicep
-          parameters: ./infrastructure/bicep/params.json
+          parametersFile: ./infrastructure/bicep/params.json
   
   # deploy-infrastructure:
   #   needs: [preview-infrastructure]
@@ -56,7 +56,7 @@ jobs:
   #     # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
   #     - uses: actions/checkout@v3
       
-  #     # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
+  #     # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID --sdk-auth
   #     # --scopes/resourceGroups/
   #     - name: Login to Azure
   #       uses: azure/login@v1
