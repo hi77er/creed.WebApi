@@ -44,7 +44,7 @@ jobs:
         uses: Azure/cli@v1.0.6
         with:
           inlineScript: |
-            az deployment group what-if resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep parameters: ./infrastructure/bicep/params.json
+            az deployment group what-if resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep parameters ./infrastructure/bicep/params.json
           
   # deploy-infrastructure:
   #   needs: [preview-infrastructure]
