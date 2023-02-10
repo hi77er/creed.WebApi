@@ -43,10 +43,10 @@ jobs:
       - name: Preview Infrastructure Changes
         uses: Azure/cli@v1.0.6
         with:
-          azcliversion: 2.34.1
+          azcliversion: 2.44.1
           inlineScript: |
-            az deployment group what-if --resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep parameters ./infrastructure/bicep/params.json
-          
+            az deployment group what-if --resource-group $RESOURCE_GROUP_NAME --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
+
   # deploy-infrastructure:
   #   needs: [preview-infrastructure]
   #   runs-on: ubuntu-latest
