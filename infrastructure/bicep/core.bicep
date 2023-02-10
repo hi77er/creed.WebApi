@@ -19,6 +19,22 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
   }
 }
 
+resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
+  name: '${keyVault.name}/policy'
+  properties: {
+    accessPolicies: [
+      {
+        applicationId: spPolicyAppId
+        objectId: spPolicyObjectId
+        tenantId: spPolicyTenantId
+        permissions: {
+          secrets: [ 'all' ]
+        }
+      }
+    ]
+  }
+}
+
 var keyVaultName = '${solution}-key-vault'
 resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
   name: keyVaultName
@@ -33,22 +49,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
       family: 'A'
       name: 'standard'
     }
-  }
-}
-
-resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
-  name: '${keyVault.name}/policy'
-  properties: {
-    accessPolicies: [
-      {
-        applicationId: spPolicyAppId
-        objectId: spPolicyObjectId
-        tenantId: spPolicyTenantId
-        permissions: {
-          secrets: [ 'all' ]
-        }
-      }
-    ]
   }
 }
 
