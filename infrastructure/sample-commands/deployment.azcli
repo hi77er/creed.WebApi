@@ -2,7 +2,7 @@
 ##  in the Bicep Files, make sure the Resource Group doesn't exist:
 ##  ! NOT IMPLEMENTED IN GITHUB ACTIONS FOR THIS PROJECT
 
-az group delete --name rg-srvymkr-training 
+az group delete --name srvymkr-training-rg 
 
 
 
@@ -18,14 +18,14 @@ az keyvault purge --name srvymkr-key-vault
 ##  it doesn't exist. Create it instead:
 ##  ! IMPLEMENTED IN GITHUB ACTIONS FOR THIS PROJECT
 
-## az group create --name rg-srvymkr-training --location westeurope
+## az group create --name srvymkr-training-rg --location westeurope
 
 
-
+srvymkr-training-rg
 ##  Test (WHAT-IF) Resource-Group Scoped Deployment of Core Infrastructure
 ##  ! IMPLEMENTED IN GITHUB ACTIONS FOR THIS PROJECT
 
-## az deployment group what-if --resource-group rg-srvymkr-training --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
+## az deployment group what-if --resource-group srvymkr-training-rg --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
 
 
 
@@ -33,4 +33,4 @@ az keyvault purge --name srvymkr-key-vault
 ##  Note: Default MS Container App (tagged latest) image will be used for the new Container Apps.
 ##  ! IMPLEMENTED IN GITHUB ACTIONS FOR THIS PROJECT
 
-## az deployment group create --resource-group rg-srvymkr-training --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
+## az deployment group create --resource-group srvymkr-training-rg --template-file .\infrastructure\bicep\main.bicep --parameters .\infrastructure\bicep\params.json
