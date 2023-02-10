@@ -45,7 +45,7 @@ jobs:
         with:
           azcliversion: 2.34.1
           inlineScript: |
-            az deployment group what-if resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep parameters ./infrastructure/bicep/params.json
+            az deployment group what-if --resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep parameters ./infrastructure/bicep/params.json
           
   # deploy-infrastructure:
   #   needs: [preview-infrastructure]
