@@ -8,7 +8,7 @@ on:
 # SUBSCRIPTION_ID should better be placed in a secret
 env:
   SUBSCRIPTION_ID: "e7907eae-35a0-4e50-b1af-97cd81fce8c4"
-  RESOURCE_GROUP_NAME: "rg-srvymkr-training"
+  RESOURCE_GROUP_NAME: "srvymkr-training-rg"
   REGION_LOCATION_NAME: "westeurope"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -31,7 +31,7 @@ jobs:
       # If the Resource Group exists before this script gets executed it will throw an error
       # Execute a script to delete the resource group (alongside with all resources in it)
       # The Bicep will recreate those resources later.
-      #   az group delete --name rg-srvymkr-training
+      #   az group delete --name srvymkr-training-rg
       # Deleting the RG will mark the Key Vault as Deleted but not delete it. Purge it with this command:
       #   az keyvault purge --name srvymkr-key-vault 
       - name: Create Resource Group
@@ -47,26 +47,30 @@ jobs:
           inlineScript: |
             az deployment group what-if --resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep --parameters ./infrastructure/bicep/params.json
 
-  # deploy-infrastructure:
-  #   needs: [preview-infrastructure]
-  #   runs-on: ubuntu-latest
+  deploy-infrastructure:
+    needs: [preview-infrastructure]
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
-  #     - uses: actions/checkout@v3
+    steps:
+      # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
+      - uses: actions/checkout@v3
       
-  #     # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID --sdk-auth
-  #     # --scopes/resourceGroups/
-  #     - name: Login to Azure
-  #       uses: azure/login@v1
-  #       with:
-  #         creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
+      # az ad sp create-for-rbac --name azure-owner-github-service-principal --role owner --scope /subscriptions/$SUBSCRIPTION_ID --sdk-auth
+      # --scopes/resourceGroups/
+      # --role contributor is not enough to create/manage an Azure Key Vault which is part of our Bicep code.
+      # we are using --role owner instead. 
+      # TODO: Research ho to setup role permissions explicitly instead of setting entire owner.
+      # Then copy result credentials and paste them in GutHub Action Secrets
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
       
-  #     - name: Deploy Infrastructure
-  #       uses: azure/arm-deploy@v1
-  #       with:
-  #         subscriptionId: $SUBSCRIPTION_ID
-  #         resourceGroupName: $RESOURCE_GROUP_NAME
-  #         template: ./infrastructure/bicep/main.bicep
-  #         parameters: ./infrastructure/bicep/params.json
-  #         failOnStdErr: false
+      - name: Deploy Infrastructure
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: $SUBSCRIPTION_ID
+          resourceGroupName: $RESOURCE_GROUP_NAME
+          template: ./infrastructure/bicep/main.bicep
+          parameters: ./infrastructure/bicep/params.json
+          failOnStdErr: false
