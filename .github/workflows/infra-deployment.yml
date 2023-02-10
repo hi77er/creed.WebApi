@@ -21,8 +21,12 @@ jobs:
       # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
       - uses: actions/checkout@v3
       
-      # az ad sp create-for-rbac --name azure-contributor-service-principal --role contributor --scope /subscriptions/$SUBSCRIPTION_ID
-      # --scopes/resourceGroups/
+      # IF THIS IS NOT DONE UNTIL NOW:
+      # az ad sp create-for-rbac --name srvymkr-github-contributor-sp --role contributor --scope /subscriptions/$SUBSCRIPTION_ID --sdk-auth
+      # Result goes to: SRVYMKR_AZURE_SP_CREDENTIALS
+      # Result tennandId goes to: params.json
+      # az ad sp list o -table
+      # Result appId, objId goes to: params.json
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -40,18 +44,13 @@ jobs:
           inlineScript: | 
             az group create --name $RESOURCE_GROUP_NAME --location $REGION_LOCATION_NAME 
       
-      # - name: Preview Infrastructure Changes
-      #   # uses: Azure/cli@v1.0.6
-      #   # with:
-      #   #   azcliversion: 2.44.1
-      #   #   inlineScript: |
-      #   #     az deployment group what-if --resource-group $RESOURCE_GROUP_NAME --template-file ./infrastructure/bicep/main.bicep --parameters ./infrastructure/bicep/params.json
-      #   uses: Azure/deployment-what-if-action@v1.0.0
-      #   with:
-      #     subscription: $SUBSCRIPTION_ID
-      #     resourceGroup: $RESOURCE_GROUP_NAME
-      #     templateFile: ./infrastructure/bicep/main.bicep
-      #     parametersFile: ./infrastructure/bicep/params.json
+      - name: Preview Infrastructure Changes
+        uses: Azure/deployment-what-if-action@v1.0.0
+        with:
+          subscription: $SUBSCRIPTION_ID
+          resourceGroup: $RESOURCE_GROUP_NAME
+          templateFile: ./infrastructure/bicep/main.bicep
+          parametersFile: ./infrastructure/bicep/params.json
 
   deploy-infrastructure:
     needs: [preview-infrastructure]
@@ -61,12 +60,12 @@ jobs:
       # Checkout your repository under $GITHUB_WORKSPACE, so your job can access it 
       - uses: actions/checkout@v3
       
-      # az ad sp create-for-rbac --name azure-owner-github-service-principal --role owner --scope /subscriptions/$SUBSCRIPTION_ID --sdk-auth
-      # --scopes/resourceGroups/
-      # --role contributor is not enough to create/manage an Azure Key Vault which is part of our Bicep code.
-      # we are using --role owner instead. 
-      # TODO: Research ho to setup role permissions explicitly instead of setting entire owner.
-      # Then copy result credentials and paste them in GutHub Action Secrets
+      # IF THIS IS NOT DONE UNTIL NOW:
+      # az ad sp create-for-rbac --name srvymkr-github-contributor-sp --role contributor --scope /subscriptions/$SUBSCRIPTION_ID --sdk-auth
+      # Result goes to: SRVYMKR_AZURE_SP_CREDENTIALS
+      # Result tennandId goes to: params.json
+      # az ad sp list o -table
+      # Result appId, objId goes toÑ params.json
       - name: Login to Azure
         uses: azure/login@v1
         with:

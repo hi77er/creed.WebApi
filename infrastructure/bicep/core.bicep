@@ -1,5 +1,8 @@
 param location string
 param solution string
+param spPolicyAppId string
+param spPolicyObjectId string
+param spPolicyTenantId string
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: '${solution}acr'
@@ -30,6 +33,22 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
       family: 'A'
       name: 'standard'
     }
+  }
+}
+
+resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
+  name: '${keyVault.name}/policy'
+  properties: {
+    accessPolicies: [
+      {
+        applicationId: spPolicyAppId
+        objectId: spPolicyObjectId
+        tenantId: spPolicyTenantId
+        permissions: {
+          secrets: [ 'all' ]
+        }
+      }
+    ]
   }
 }
 

@@ -3,12 +3,18 @@ param solution string
 param project string
 param imageName string
 param imageTag string
+param spPolicyAppId string
+param spPolicyObjectId string
+param spPolicyTenantId string
 
 module core 'core.bicep' = {
   name: 'core'
   params: {
     location: location
     solution: solution
+    spPolicyAppId: spPolicyAppId
+    spPolicyObjectId: spPolicyObjectId
+    spPolicyTenantId: spPolicyTenantId
   }
 }
 
