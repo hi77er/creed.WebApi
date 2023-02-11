@@ -7,17 +7,8 @@ param spPolicyAppId string
 param spPolicyObjectId string
 param spPolicyTenantId string
 
-module core 'core.bicep' = {
-  name: 'core'
-  params: {
-    location: location
-    solution: solution
-    spPolicyAppId: spPolicyAppId
-    spPolicyObjectId: spPolicyObjectId
-    spPolicyTenantId: spPolicyTenantId
-  }
-}
-
+var devSuffix = 'dev'
+var prodSuffix = 'prod'
 var containerRegistryName = '${solution}acr'
 var keyVaultName = '${solution}-key-vault'
 var keyVaultSecretName = '${containerRegistryName}AdminPassword'
@@ -45,17 +36,17 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enabledForTemplateDeployment: true
     enableRbacAuthorization: true
     enabledForDiskEncryption: true
-    tenantId: spPolicyTenantId
-    accessPolicies: [
-      {
-        applicationId: spPolicyAppId
-        objectId: spPolicyObjectId
-        tenantId: spPolicyTenantId
-        permissions: {
-          secrets: [ 'all' ]
-        }
-      }
-    ]
+    tenantId: tenant().tenantId // spPolicyTenantId
+    // accessPolicies: [
+    //   {
+    //     applicationId: spPolicyAppId
+    //     objectId: spPolicyObjectId
+    //     tenantId: spPolicyTenantId
+    //     permissions: {
+    //       secrets: [ 'all' ]
+    //     }
+    //   }
+    // ]
     sku: {
       family: 'A'
       name: 'standard'
@@ -71,8 +62,8 @@ resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: '${solution}-${project}-${'dev'}-la-workspace'
+resource devLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
+  name: '${solution}-${project}-${devSuffix}-la-workspace'
   location: location
   properties: {
     sku: {
@@ -81,8 +72,8 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10
   }
 }
 
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
-  name: '${solution}-${project}-${'dev'}-environment'
+resource devContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
+  name: '${solution}-${project}-${devSuffix}-environment'
   location: location
   sku: {
     name: 'Consumption'
@@ -92,22 +83,22 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-p
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
-        customerId: logAnalyticsWorkspace.properties.customerId
-        sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
+        customerId: devLogAnalyticsWorkspace.properties.customerId
+        sharedKey: devLogAnalyticsWorkspace.listKeys().primarySharedKey
       }
     }
   }
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
-  name: '${solution}-${project}-${'dev'}-ca'
+  name: '${solution}-${project}-${devSuffix}-ca'
   location: location
   identity: {
     type: 'None'
   }
   properties: {
-    environmentId: containerAppEnvironment.id
-    managedEnvironmentId: containerAppEnvironment.id
+    environmentId: devContainerAppEnvironment.id
+    managedEnvironmentId: devContainerAppEnvironment.id
     configuration: {
       secrets: [
         {
@@ -138,7 +129,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       dapr: {
         enabled: true
         appPort: 80
-        appId: '${solution}-${project}-${'dev'}-container'
+        appId: '${solution}-${project}-${devSuffix}-container'
         appProtocol: 'http'
         enableApiLogging: false
         logLevel: 'error'
@@ -151,7 +142,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       containers: [
         {
           image: '${imageName}:${imageTag}'
-          name: '${solution}-${project}-${'dev'}-container'
+          name: '${solution}-${project}-${devSuffix}-container'
           env: [
             {
               name: 'PORT'
@@ -182,7 +173,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
 }
 
 resource prodLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: '${solution}-${project}-${'prod'}-la-workspace'
+  name: '${solution}-${project}-${prodSuffix}-la-workspace'
   location: location
   properties: {
     sku: {
@@ -192,7 +183,7 @@ resource prodLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@202
 }
 
 resource prodContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
-  name: '${solution}-${project}-${'prod'}-environment'
+  name: '${solution}-${project}-${prodSuffix}-environment'
   location: location
   sku: {
     name: 'Consumption'
@@ -210,7 +201,7 @@ resource prodContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-
 }
 
 resource prodContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
-  name: '${solution}-${project}-${'prod'}-ca'
+  name: '${solution}-${project}-${prodSuffix}-ca'
   location: location
   identity: {
     type: 'None'
@@ -248,7 +239,7 @@ resource prodContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       dapr: {
         enabled: true
         appPort: 80
-        appId: '${solution}-${project}-${'prod'}-container'
+        appId: '${solution}-${project}-${prodSuffix}-container'
         appProtocol: 'http'
         enableApiLogging: false
         logLevel: 'error'
@@ -261,7 +252,7 @@ resource prodContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       containers: [
         {
           image: '${imageName}:${imageTag}'
-          name: '${solution}-${project}-${'prod'}-container'
+          name: '${solution}-${project}-${prodSuffix}-container'
           env: [
             {
               name: 'PORT'
