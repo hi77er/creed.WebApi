@@ -40,8 +40,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
 }
 
 resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
-  parent: keyVault
   name: 'add'
+  parent: keyVault
   properties: {
     accessPolicies: [
       {

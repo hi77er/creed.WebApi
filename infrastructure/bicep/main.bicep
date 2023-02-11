@@ -18,7 +18,7 @@ module core 'core.bicep' = {
   }
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: core.outputs.KeyVaultName
 }
 
