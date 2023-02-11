@@ -37,15 +37,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
       name: 'standard'
     }
   }
-}
-
-resource existingKeyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: keyVaultName
   resource keyVaultPolicies 'accessPolicies' = {
     name: 'add'
-    dependsOn: [
-      keyVault
-    ]
     properties: {
       accessPolicies: [
         {
