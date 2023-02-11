@@ -55,7 +55,8 @@ resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicie
 }
 
 resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${keyVault.name}/${containerRegistry.name}AdminPassword'
+  name: '${containerRegistry.name}AdminPassword'
+  parent: keyVault
   properties: {
     value: containerRegistry.listCredentials().passwords[0].value
   }
