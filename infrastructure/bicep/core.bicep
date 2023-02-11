@@ -39,20 +39,25 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
-resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
-  name: 'add'
-  parent: keyVault
-  properties: {
-    accessPolicies: [
-      {
-        applicationId: spPolicyAppId
-        objectId: spPolicyObjectId
-        tenantId: spPolicyTenantId
-        permissions: {
-          secrets: [ 'all' ]
-        }
-      }
+resource existingKeyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
+  resource keyVaultPolicies 'accessPolicies' = {
+    name: 'add'
+    dependsOn: [
+      keyVault
     ]
+    properties: {
+      accessPolicies: [
+        {
+          applicationId: spPolicyAppId
+          objectId: spPolicyObjectId
+          tenantId: spPolicyTenantId
+          permissions: {
+            secrets: [ 'all' ]
+          }
+        }
+      ]
+    }
   }
 }
 
