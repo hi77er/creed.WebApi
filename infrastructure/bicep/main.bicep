@@ -3,9 +3,9 @@ param solution string
 param project string
 param imageName string
 param imageTag string
-param spPolicyAppId string
-param spPolicyObjectId string
-param spPolicyTenantId string
+// param spPolicyAppId string
+// param spPolicyObjectId string
+// param spPolicyTenantId string
 
 var devSuffix = 'dev'
 var prodSuffix = 'prod'
