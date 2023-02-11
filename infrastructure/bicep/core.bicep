@@ -32,24 +32,19 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enableRbacAuthorization: true
     enabledForDiskEncryption: true
     tenantId: spPolicyTenantId
+    accessPolicies: [
+      {
+        applicationId: spPolicyAppId
+        objectId: spPolicyObjectId
+        tenantId: spPolicyTenantId
+        permissions: {
+          secrets: [ 'all' ]
+        }
+      }
+    ]
     sku: {
       family: 'A'
       name: 'standard'
-    }
-  }
-  resource keyVaultPolicies 'accessPolicies' = {
-    name: 'add'
-    properties: {
-      accessPolicies: [
-        {
-          applicationId: spPolicyAppId
-          objectId: spPolicyObjectId
-          tenantId: spPolicyTenantId
-          permissions: {
-            secrets: [ 'all' ]
-          }
-        }
-      ]
     }
   }
 }
