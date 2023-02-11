@@ -16,15 +16,6 @@
     },
     "imageTag": {
       "value": "latest"
-    },
-    "spPolicyTenantId": {
-      "value": "4804ac8e-c455-429d-821c-1e1ce6fad044"
-    },
-    "spPolicyAppId": {
-      "value": "33cfda4b-f345-4f1a-833a-2434ce46a4f9"
-    },
-    "spPolicyObjectId": {
-      "value": "4dbc066d-9c49-4d2d-a215-971eada4a527"
     }
   }
 }
