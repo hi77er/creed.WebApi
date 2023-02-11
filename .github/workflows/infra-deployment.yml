@@ -77,3 +77,4 @@ jobs:
           resourceGroupName: srvymkr-training-rg
           template: ./infrastructure/bicep/main.bicep
           parameters: ./infrastructure/bicep/params.json
+          failOnStdErr: false
