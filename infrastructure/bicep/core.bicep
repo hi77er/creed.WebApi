@@ -4,6 +4,8 @@ param spPolicyAppId string
 param spPolicyObjectId string
 param spPolicyTenantId string
 
+var keyVaultName = '${solution}-key-vault'
+
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: '${solution}acr'
   location: location
@@ -19,8 +21,25 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
   }
 }
 
+resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
+  name: keyVaultName
+  location: location
+  properties: {
+    enabledForDeployment: true
+    enabledForTemplateDeployment: true
+    enableRbacAuthorization: true
+    enabledForDiskEncryption: true
+    tenantId: spPolicyTenantId
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+  }
+}
+
 resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
-  name: '${keyVault.name}/policy'
+  parent: keyVault
+  name: 'add'
   properties: {
     accessPolicies: [
       {
@@ -32,23 +51,6 @@ resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicie
         }
       }
     ]
-  }
-}
-
-var keyVaultName = '${solution}-key-vault'
-resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
-  name: keyVaultName
-  location: location
-  properties: {
-    enabledForDeployment: true
-    enabledForTemplateDeployment: true
-    enableRbacAuthorization: true
-    enabledForDiskEncryption: true
-    tenantId: tenant().tenantId
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
   }
 }
 
