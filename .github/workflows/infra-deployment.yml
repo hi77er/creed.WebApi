@@ -74,7 +74,6 @@ jobs:
       - name: Deploy Infrastructure
         uses: azure/arm-deploy@v1
         with:
-          subscriptionId: $SUBSCRIPTION_ID
           resourceGroupName: $RESOURCE_GROUP_NAME
           template: ./infrastructure/bicep/main.bicep
           parameters: ./infrastructure/bicep/params.json
