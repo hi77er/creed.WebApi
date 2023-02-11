@@ -4,10 +4,12 @@ param spPolicyAppId string
 param spPolicyObjectId string
 param spPolicyTenantId string
 
+var containerRegistryName = '${solution}acr'
 var keyVaultName = '${solution}-key-vault'
+var keyVaultSecretName = '${containerRegistryName}AdminPassword'
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
-  name: '${solution}acr'
+  name: containerRegistryName
   location: location
   sku: {
     name: 'Basic'
@@ -21,7 +23,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
   }
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
   properties: {
@@ -54,14 +56,15 @@ resource keyVaultAccessPolicyForSecrets 'Microsoft.KeyVault/vaults/accessPolicie
   }
 }
 
-resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${keyVault.name}/${containerRegistry.name}AdminPassword'
+resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: keyVaultSecretName
+  parent: keyVault
   properties: {
     value: containerRegistry.listCredentials().passwords[0].value
   }
 }
 
-output ContainerRegistryName string = containerRegistry.name
-output ContainerRegistryUsername string = containerRegistry.name
+output ContainerRegistryName string = containerRegistryName
+output ContainerRegistryUsername string = containerRegistryName
 output KeyVaultName string = keyVaultName
-output ContainerRegistrySecretName string = split(keyVaultSecret.name, '/')[1]
+output ContainerRegistrySecretName string = split(keyVaultSecretName, '/')[1]
