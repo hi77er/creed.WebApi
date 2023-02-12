@@ -3,9 +3,6 @@ param solution string
 param project string
 param imageName string
 param imageTag string
-// param spPolicyAppId string
-// param spPolicyObjectId string
-// param spPolicyTenantId string
 
 var devSuffix = 'dev'
 var prodSuffix = 'prod'
@@ -36,17 +33,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enabledForTemplateDeployment: true
     enableRbacAuthorization: true
     enabledForDiskEncryption: true
-    tenantId: tenant().tenantId // spPolicyTenantId
-    // accessPolicies: [
-    //   {
-    //     applicationId: spPolicyAppId
-    //     objectId: spPolicyObjectId
-    //     tenantId: spPolicyTenantId
-    //     permissions: {
-    //       secrets: [ 'all' ]
-    //     }
-    //   }
-    // ]
+    tenantId: tenant().tenantId
     sku: {
       family: 'A'
       name: 'standard'
