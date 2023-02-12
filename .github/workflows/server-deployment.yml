@@ -89,7 +89,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.CASRVYMKRSERVERPROD_AZURE_CREDENTIALS }}
+          creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
 
       # az containerapp revision restart - is needed when new image has the same tag
       # (currently tag is always set to be "latest")
