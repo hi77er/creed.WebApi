@@ -7,6 +7,7 @@ param imageTag string
 param containerRegistryName string
 @secure()
 param containerRegistryPassword string
+param mongoDbConnectionString string
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
   name: '${solution}-${project}-${env}-la-workspace'
@@ -93,6 +94,10 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
             {
               name: 'PORT'
               value: '80'
+            }
+            {
+              name: 'mongoDbConnectionString'
+              value: mongoDbConnectionString
             }
             {
               name: 'googleClientID'

@@ -4,21 +4,20 @@ param project string
 param imageName string
 param imageTag string
 
+param primaryRegion string = location
+param serverVersion string = '4.2'
+param sharedAutoscaleMaxThroughput int = 1000
+
 var devSuffix = 'dev'
 var prodSuffix = 'prod'
 var containerRegistryName = '${solution}acr'
 var keyVaultName = '${solution}-key-vault'
 var keyVaultSecretName = '${containerRegistryName}AdminPassword'
 
-module devMongoDb 'mongo.bicep' = {
-  name: 'devMongoDb'
-  params: {
-    env: devSuffix
-    solution: solution
-    project: project
-    location: location
-  }
-}
+var devDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
+var devDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
+var prodDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
+var prodDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: containerRegistryName
@@ -59,6 +58,51 @@ resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
+resource devDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
+  name: devDbAccountName
+  location: location
+  kind: 'MongoDB'
+  properties: {
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Eventual'
+    }
+    locations: [
+      {
+        locationName: primaryRegion
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    databaseAccountOfferType: 'Standard'
+    enableAutomaticFailover: true
+    apiProperties: {
+      serverVersion: serverVersion
+    }
+    capabilities: [
+      {
+        name: 'DisableRateLimitingResponses'
+      }
+    ]
+  }
+}
+
+resource devMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-05-15' = {
+  parent: devDbAccount
+  name: devDbName
+  properties: {
+    resource: {
+      id: devDbName
+    }
+    options: {
+      autoscaleSettings: {
+        maxThroughput: sharedAutoscaleMaxThroughput
+      }
+    }
+  }
+}
+
+var devMongoDbConnectionString = listConnectionStrings(devDbAccount.id, devDbAccount.apiVersion).connectionStrings[0].connectionString
+
 module devContainerApp 'aca.bicep' = {
   name: 'devContainerApp'
   params: {
@@ -70,8 +114,54 @@ module devContainerApp 'aca.bicep' = {
     imageTag: imageTag
     containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
     containerRegistryName: containerRegistryName
+    mongoDbConnectionString: devMongoDbConnectionString
   }
 }
+
+resource prodDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
+  name: prodDbAccountName
+  location: location
+  kind: 'MongoDB'
+  properties: {
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Eventual'
+    }
+    locations: [
+      {
+        locationName: primaryRegion
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    databaseAccountOfferType: 'Standard'
+    enableAutomaticFailover: true
+    apiProperties: {
+      serverVersion: serverVersion
+    }
+    capabilities: [
+      {
+        name: 'DisableRateLimitingResponses'
+      }
+    ]
+  }
+}
+
+resource prodMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-05-15' = {
+  parent: prodDbAccount
+  name: prodDbName
+  properties: {
+    resource: {
+      id: devDbName
+    }
+    options: {
+      autoscaleSettings: {
+        maxThroughput: sharedAutoscaleMaxThroughput
+      }
+    }
+  }
+}
+
+var prodMongoDbConnectionString = listConnectionStrings(prodDbAccount.id, prodDbAccount.apiVersion).connectionStrings[0].connectionString
 
 module prodContainerApp 'aca.bicep' = {
   name: 'prodContainerApp'
@@ -84,6 +174,7 @@ module prodContainerApp 'aca.bicep' = {
     imageTag: imageTag
     containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
     containerRegistryName: containerRegistryName
+    mongoDbConnectionString: prodMongoDbConnectionString
   }
 }
 
