@@ -12,7 +12,7 @@ require('./routs/dashboardRoutеs')(app);
 
 mongoose
   .connect(
-    "mongodb://mongo:27017/docker-node-mongo",
+    process.env.MONGO_DB_CONNECTION_STRING, // "mongodb://mongo:27017/docker-node-mongo"
     { useNewUrlParser: true }
   )
   .then(() => console.log("MongoDB Connected."))
