@@ -1,0 +1,9 @@
+# Build and tag docker image
+docker build -t srvymkr-server .
+
+# Deploy to local Docker Desktop
+docker run 
+  --env PORT="80" 
+  --env googleClientID="450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com" 
+  --env googleClientSecret="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" 
+  -dp 80:80 srvymkr-server
