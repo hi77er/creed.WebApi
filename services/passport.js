@@ -1,6 +1,19 @@
 require('dotenv').config();
+const mongoose = require("mongoose");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
+const User = mongoose.model('users');
+
+passport.serializeUser((user, done) => {
+  console.log('ser: ', user.id);
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  console.log('deser: ', id);
+  User.findById(id).then((user) => { done(null, user); });
+});
 
 passport.use(
   new GoogleStrategy(
@@ -10,10 +23,24 @@ passport.use(
       callbackURL: '/oauth/google/callback'
     },
     (accessToken, refreshToken, profile, done) => {
-      console.log(accessToken);
-      console.log(refreshToken);
-      console.log(profile);
-      console.log(done);
+      User
+        .findOne({ googleId: profile.id })
+        .then(async (existingUser) => {
+          if (existingUser) {
+            done(null, existingUser);
+          } else {
+            new User({
+              emails: profile.emails.map(x => { x.value, verified = false }),
+              firstName: profile.name.givenName,
+              lastName: profile.name.familyName,
+              gender: profile.gender,
+              googleId: profile.id,
+              googlePhotos: profile.photos,
+            })
+              .save()
+              .then((savedUser) => done(null, savedUser));
+          }
+        });
     }
   )
 );
