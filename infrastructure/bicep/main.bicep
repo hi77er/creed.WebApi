@@ -16,8 +16,8 @@ var keyVaultSecretName = '${containerRegistryName}AdminPassword'
 
 var devDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
 var devDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
-var prodDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
-var prodDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
+var prodDbAccountName = toLower('${solution}-${project}-${prodSuffix}-mongodb-account')
+var prodDbName = toLower('${solution}-${project}-${prodSuffix}-mongodb')
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: containerRegistryName
