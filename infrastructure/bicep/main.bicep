@@ -77,7 +77,7 @@ resource devContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-0
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource devContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: '${solution}-${project}-${devSuffix}-ca'
   location: location
   identity: {
@@ -269,5 +269,5 @@ resource prodContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
   }
 }
 
-output ContainerAppUrl string = containerApp.properties.configuration.ingress.fqdn
-output ProdContainerAppUrl string = containerApp.properties.configuration.ingress.fqdn
+output DevContainerAppUrl string = devContainerApp.properties.configuration.ingress.fqdn
+output ProdContainerAppUrl string = prodContainerApp.properties.configuration.ingress.fqdn
