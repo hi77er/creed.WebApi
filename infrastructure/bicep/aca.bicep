@@ -107,6 +107,10 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
               name: 'GOOGLE_CLIENT_SECRET'
               value: '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'
             }
+            {
+              name: 'COOKIE_KEY'
+              value: 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
+            }
           ]
           resources: {
             cpu: '0.25'
