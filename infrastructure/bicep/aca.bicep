@@ -96,15 +96,15 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
               value: '80'
             }
             {
-              name: 'mongoDbConnectionString'
+              name: 'MONGO_DB_CONNECTION_STRING'
               value: mongoDbConnectionString
             }
             {
-              name: 'googleClientID'
+              name: 'GOOGLE_CLIENT_ID'
               value: '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
             }
             {
-              name: 'googleClientSecret'
+              name: 'GOOGLE_CLIENT_SECRET'
               value: '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'
             }
           ]
