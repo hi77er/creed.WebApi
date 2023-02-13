@@ -1,8 +1,5 @@
 param location string
 param solution string
-param spPolicyAppId string
-param spPolicyObjectId string
-param spPolicyTenantId string
 
 var containerRegistryName = '${solution}acr'
 var keyVaultName = '${solution}-key-vault'
@@ -31,17 +28,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enabledForTemplateDeployment: true
     enableRbacAuthorization: true
     enabledForDiskEncryption: true
-    tenantId: spPolicyTenantId
-    accessPolicies: [
-      {
-        applicationId: spPolicyAppId
-        objectId: spPolicyObjectId
-        tenantId: spPolicyTenantId
-        permissions: {
-          secrets: [ 'all' ]
-        }
-      }
-    ]
+    tenantId: tenant().tenantId
     sku: {
       family: 'A'
       name: 'standard'

@@ -1,4 +1,4 @@
-param location string
+param location string = resourceGroup().location
 param solution string
 param project string
 param imageName string
@@ -9,6 +9,16 @@ var prodSuffix = 'prod'
 var containerRegistryName = '${solution}acr'
 var keyVaultName = '${solution}-key-vault'
 var keyVaultSecretName = '${containerRegistryName}AdminPassword'
+
+module devMongoDb 'mongo.bicep' = {
+  name: 'devMongoDb'
+  params: {
+    env: devSuffix
+    solution: solution
+    project: project
+    location: location
+  }
+}
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: containerRegistryName
