@@ -151,7 +151,7 @@ resource prodMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@202
   name: prodDbName
   properties: {
     resource: {
-      id: devDbName
+      id: prodDbName
     }
     options: {
       autoscaleSettings: {
