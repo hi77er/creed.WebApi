@@ -4,21 +4,20 @@ param project string
 param imageName string
 param imageTag string
 
+param primaryRegion string = location
+param serverVersion string = '4.2'
+param sharedAutoscaleMaxThroughput int = 1000
+
 var devSuffix = 'dev'
 var prodSuffix = 'prod'
 var containerRegistryName = '${solution}acr'
 var keyVaultName = '${solution}-key-vault'
 var keyVaultSecretName = '${containerRegistryName}AdminPassword'
 
-module devMongoDb 'mongo.bicep' = {
-  name: 'devMongoDb'
-  params: {
-    env: devSuffix
-    solution: solution
-    project: project
-    location: location
-  }
-}
+var devDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
+var devDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
+var prodDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
+var prodDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: containerRegistryName
@@ -59,225 +58,125 @@ resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
-resource devLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: '${solution}-${project}-${devSuffix}-la-workspace'
+resource devDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
+  name: devDbAccountName
   location: location
+  kind: 'MongoDB'
   properties: {
-    sku: {
-      name: 'PerGB2018'
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Eventual'
     }
+    locations: [
+      {
+        locationName: primaryRegion
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    databaseAccountOfferType: 'Standard'
+    enableAutomaticFailover: true
+    apiProperties: {
+      serverVersion: serverVersion
+    }
+    capabilities: [
+      {
+        name: 'DisableRateLimitingResponses'
+      }
+    ]
   }
 }
 
-resource devContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
-  name: '${solution}-${project}-${devSuffix}-environment'
-  location: location
-  sku: {
-    name: 'Consumption'
-  }
+resource devMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-05-15' = {
+  parent: devDbAccount
+  name: devDbName
   properties: {
-    zoneRedundant: false
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: devLogAnalyticsWorkspace.properties.customerId
-        sharedKey: devLogAnalyticsWorkspace.listKeys().primarySharedKey
-      }
+    resource: {
+      id: devDbName
     }
-  }
-}
-
-resource devContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
-  name: '${solution}-${project}-${devSuffix}-ca'
-  location: location
-  identity: {
-    type: 'None'
-  }
-  properties: {
-    environmentId: devContainerAppEnvironment.id
-    managedEnvironmentId: devContainerAppEnvironment.id
-    configuration: {
-      secrets: [
-        {
-          name: '${containerRegistryName}-password'
-          value: containerRegistry.listCredentials().passwords[0].value
-        }
-      ]
-      registries: [
-        {
-          server: '${containerRegistryName}.azurecr.io'
-          username: containerRegistryName
-          passwordSecretRef: '${containerRegistryName}-password'
-        }
-      ]
-      ingress: {
-        external: true
-        targetPort: 80
-        exposedPort: 0
-        transport: 'Auto'
-        traffic: [
-          {
-            weight: 100
-            latestRevision: true
-          }
-        ]
-        allowInsecure: false
-      }
-      dapr: {
-        enabled: true
-        appPort: 80
-        appId: '${solution}-${project}-${devSuffix}-container'
-        appProtocol: 'http'
-        enableApiLogging: false
-        logLevel: 'error'
-      }
-      activeRevisionsMode: 'Single'
-      maxInactiveRevisions: 1
-    }
-    template: {
-      revisionSuffix: 'revision'
-      containers: [
-        {
-          image: '${imageName}:${imageTag}'
-          name: '${solution}-${project}-${devSuffix}-container'
-          env: [
-            {
-              name: 'PORT'
-              value: '80'
-            }
-            {
-              name: 'googleClientID'
-              value: '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
-            }
-            {
-              name: 'googleClientSecret'
-              value: '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'
-            }
-          ]
-          resources: {
-            cpu: '0.25'
-            memory: '0.5Gi'
-          }
-          probes: []
-        }
-      ]
-      scale: {
-        minReplicas: 0
-        maxReplicas: 3
+    options: {
+      autoscaleSettings: {
+        maxThroughput: sharedAutoscaleMaxThroughput
       }
     }
   }
 }
 
-resource prodLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: '${solution}-${project}-${prodSuffix}-la-workspace'
-  location: location
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
+var devMongoDbConnectionString = listConnectionStrings(devDbAccount.id, devDbAccount.apiVersion).connectionStrings[0].connectionString
+
+module devContainerApp 'aca.bicep' = {
+  name: 'devContainerApp'
+  params: {
+    solution: solution
+    project: project
+    env: devSuffix
+    location: location
+    imageName: imageName
+    imageTag: imageTag
+    containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: containerRegistryName
+    mongoDbConnectionString: devMongoDbConnectionString
   }
 }
 
-resource prodContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
-  name: '${solution}-${project}-${prodSuffix}-environment'
+resource prodDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
+  name: prodDbAccountName
   location: location
-  sku: {
-    name: 'Consumption'
-  }
+  kind: 'MongoDB'
   properties: {
-    zoneRedundant: false
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: prodLogAnalyticsWorkspace.properties.customerId
-        sharedKey: prodLogAnalyticsWorkspace.listKeys().primarySharedKey
-      }
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Eventual'
     }
+    locations: [
+      {
+        locationName: primaryRegion
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    databaseAccountOfferType: 'Standard'
+    enableAutomaticFailover: true
+    apiProperties: {
+      serverVersion: serverVersion
+    }
+    capabilities: [
+      {
+        name: 'DisableRateLimitingResponses'
+      }
+    ]
   }
 }
 
-resource prodContainerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
-  name: '${solution}-${project}-${prodSuffix}-ca'
-  location: location
-  identity: {
-    type: 'None'
-  }
+resource prodMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-05-15' = {
+  parent: prodDbAccount
+  name: prodDbName
   properties: {
-    environmentId: prodContainerAppEnvironment.id
-    managedEnvironmentId: prodContainerAppEnvironment.id
-    configuration: {
-      secrets: [
-        {
-          name: '${containerRegistryName}-password'
-          value: containerRegistry.listCredentials().passwords[0].value
-        }
-      ]
-      registries: [
-        {
-          server: '${containerRegistryName}.azurecr.io'
-          username: containerRegistryName
-          passwordSecretRef: '${containerRegistryName}-password'
-        }
-      ]
-      ingress: {
-        external: true
-        targetPort: 80
-        exposedPort: 0
-        transport: 'Auto'
-        traffic: [
-          {
-            weight: 100
-            latestRevision: true
-          }
-        ]
-        allowInsecure: false
-      }
-      dapr: {
-        enabled: true
-        appPort: 80
-        appId: '${solution}-${project}-${prodSuffix}-container'
-        appProtocol: 'http'
-        enableApiLogging: false
-        logLevel: 'error'
-      }
-      activeRevisionsMode: 'Single'
-      maxInactiveRevisions: 1
+    resource: {
+      id: devDbName
     }
-    template: {
-      revisionSuffix: 'revision'
-      containers: [
-        {
-          image: '${imageName}:${imageTag}'
-          name: '${solution}-${project}-${prodSuffix}-container'
-          env: [
-            {
-              name: 'PORT'
-              value: '80'
-            }
-            {
-              name: 'googleClientID'
-              value: '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
-            }
-            {
-              name: 'googleClientSecret'
-              value: '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'
-            }
-          ]
-          resources: {
-            cpu: '0.25'
-            memory: '0.5Gi'
-          }
-          probes: []
-        }
-      ]
-      scale: {
-        minReplicas: 0
-        maxReplicas: 3
+    options: {
+      autoscaleSettings: {
+        maxThroughput: sharedAutoscaleMaxThroughput
       }
     }
   }
 }
 
-output DevContainerAppUrl string = devContainerApp.properties.configuration.ingress.fqdn
-output ProdContainerAppUrl string = prodContainerApp.properties.configuration.ingress.fqdn
+var prodMongoDbConnectionString = listConnectionStrings(prodDbAccount.id, prodDbAccount.apiVersion).connectionStrings[0].connectionString
+
+module prodContainerApp 'aca.bicep' = {
+  name: 'prodContainerApp'
+  params: {
+    solution: solution
+    project: project
+    env: prodSuffix
+    location: location
+    imageName: imageName
+    imageTag: imageTag
+    containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: containerRegistryName
+    mongoDbConnectionString: prodMongoDbConnectionString
+  }
+}
+
+output DevContainerAppUrl string = devContainerApp.outputs.ContainerAppUrl
+output ProdContainerAppUrl string = prodContainerApp.outputs.ContainerAppUrl
