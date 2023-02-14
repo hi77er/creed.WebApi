@@ -7,7 +7,13 @@ param imageTag string
 param containerRegistryName string
 @secure()
 param containerRegistryPassword string
-param mongoDbConnectionString string
+param envPort int
+param envMongoDbConnectionString string
+param envGoogleClientId string
+@secure()
+param envGoogleClientSecret string
+@secure()
+param envCookieKey string
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
   name: '${solution}-${project}-${env}-la-workspace'
@@ -62,7 +68,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       ]
       ingress: {
         external: true
-        targetPort: 80
+        targetPort: envPort
         exposedPort: 0
         transport: 'Auto'
         traffic: [
@@ -75,7 +81,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       }
       dapr: {
         enabled: true
-        appPort: 80
+        appPort: envPort
         appId: '${solution}-${project}-${env}-container'
         appProtocol: 'http'
         enableApiLogging: false
@@ -93,23 +99,23 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
           env: [
             {
               name: 'PORT'
-              value: '80'
+              value: string(envPort)
             }
             {
               name: 'MONGO_DB_CONNECTION_STRING'
-              value: mongoDbConnectionString
+              value: envMongoDbConnectionString
             }
             {
               name: 'GOOGLE_CLIENT_ID'
-              value: '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
+              value: envGoogleClientId
             }
             {
               name: 'GOOGLE_CLIENT_SECRET'
-              value: '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'
+              value: envGoogleClientSecret
             }
             {
               name: 'COOKIE_KEY'
-              value: 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
+              value: envCookieKey
             }
           ]
           resources: {

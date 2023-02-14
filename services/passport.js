@@ -20,7 +20,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: '/oauth/google/callback'
+      callbackURL: '/oauth/google/callback',
+      proxy: true
     },
     (accessToken, refreshToken, profile, done) => {
       User

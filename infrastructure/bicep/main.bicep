@@ -114,7 +114,11 @@ module devContainerApp 'aca.bicep' = {
     imageTag: imageTag
     containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
     containerRegistryName: containerRegistryName
-    mongoDbConnectionString: devMongoDbConnectionString
+    envPort: 80
+    envMongoDbConnectionString: devMongoDbConnectionString
+    envGoogleClientId: '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
+    envGoogleClientSecret: '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'
+    envCookieKey: 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
   }
 }
 
@@ -174,7 +178,11 @@ module prodContainerApp 'aca.bicep' = {
     imageTag: imageTag
     containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
     containerRegistryName: containerRegistryName
-    mongoDbConnectionString: prodMongoDbConnectionString
+    envPort: 80
+    envMongoDbConnectionString: prodMongoDbConnectionString
+    envGoogleClientId: '899455933664-q1r38u10d5icf12g8gim6ueib9g5ksnv.apps.googleusercontent.com'
+    envGoogleClientSecret: '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'
+    envCookieKey: 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
   }
 }
 
