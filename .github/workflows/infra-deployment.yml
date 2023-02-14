@@ -33,6 +33,7 @@ jobs:
       # Deleting the RG will mark the Key Vault as Deleted but not delete it. Purge it with this command:
       #   az keyvault purge --name srvymkr-key-vault 
       - name: Purge Old Key Vault
+        continue-on-error: true
         uses: Azure/cli@v1.0.6
         with:
           inlineScript: | 
@@ -43,6 +44,7 @@ jobs:
       # The Bicep will recreate those resources later.
       #   az group delete --name srvymkr-training-rg
       - name: Create Resource Group
+        continue-on-error: true
         uses: Azure/cli@v1.0.6
         with:
           inlineScript: | 
