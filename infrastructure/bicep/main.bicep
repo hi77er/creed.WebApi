@@ -13,7 +13,7 @@ param sharedAutoscaleMaxThroughput int = 1000
 
 var devSuffix = 'dev'
 var prodSuffix = 'prod'
-var devContainerRegistryName = toLower('${solution}${devSuffix}devacr')
+var devContainerRegistryName = toLower('${solution}${devSuffix}acr')
 var prodContainerRegistryName = toLower('${solution}${prodSuffix}acr')
 var keyVaultName = '${solution}-key-vault'
 var devCRAdminSecretName = '${devContainerRegistryName}AdminPassword'
@@ -195,7 +195,7 @@ module devClientContainerApp 'aca.bicep' = {
 // PRODUCTION ENV
 
 resource prodContainerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
-  name: devContainerRegistryName
+  name: prodContainerRegistryName
   location: location
   sku: {
     name: 'Basic'
