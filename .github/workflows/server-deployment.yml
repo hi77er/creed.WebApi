@@ -3,13 +3,13 @@ name: Trigger auto deployment
 # When this action will be executed
 on:
   # Automatically trigger it when detected changes in repo
-  # push:
-  #   branches:
-  #     - master
-  #     - develop
-  #   paths:
-  #     - '**'
-  #     - '.github/workflows/server-deployment.yml'
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - '**'
+      - '.github/workflows/server-deployment.yml'
 
   # Allow mannually trigger
   workflow_dispatch:
@@ -51,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: srvymkrdevacr.azurecr.io/srvymkr-server-image:latest
+          tags: srvymkrdevacr.azurecr.io/srvymkr-server-dev-image:latest
           file: ./Dockerfile
           context: ./
 
@@ -78,7 +78,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: srvymkrprodacr.azurecr.io/srvymkr-server-image:latest
+          tags: srvymkrprodacr.azurecr.io/srvymkr-server-prod-image:latest
           file: ./Dockerfile
           context: ./
 
@@ -104,7 +104,7 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n srvymkr-server-dev-ca -g srvymkr-training-rg --server srvymkrdevacr.azurecr.io --username  ${{ secrets.AZURE_SP_CLIENT_ID }} --password ${{ secrets.AZURE_SP_CLIENT_SECRET }}
-            az containerapp update -n srvymkr-server-dev-ca -g srvymkr-training-rg --image srvymkrdevacr.azurecr.io/srvymkr-server-image:latest
+            az containerapp update -n srvymkr-server-dev-ca -g srvymkr-training-rg --image srvymkrdevacr.azurecr.io/srvymkr-server-dev-image:latest
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -128,4 +128,4 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n srvymkr-server-prod-ca -g srvymkr-training-rg --server srvymkrprodacr.azurecr.io --username  ${{ secrets.AZURE_SP_CLIENT_ID }} --password ${{ secrets.AZURE_SP_CLIENT_SECRET }}
-            az containerapp update -n srvymkr-server-prod-ca -g srvymkr-training-rg --image srvymkrprodacr.azurecr.io/srvymkr-server-image:latest
+            az containerapp update -n srvymkr-server-prod-ca -g srvymkr-training-rg --image srvymkrprodacr.azurecr.io/srvymkr-server-prod-image:latest
