@@ -1,47 +1,14 @@
-param location string
-param env string
 param solution string
 param project string
-param imageName string
-param imageTag string
+param env string
+param location string
+param containerAppEnvironmentId string
 param containerRegistryName string
 @secure()
 param containerRegistryPassword string
-param envPort int
-param envMongoDbConnectionString string
-param envGoogleClientId string
-@secure()
-param envGoogleClientSecret string
-@secure()
-param envCookieKey string
-
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: '${solution}-${project}-${env}-la-workspace'
-  location: location
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-  }
-}
-
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
-  name: '${solution}-${project}-${env}-environment'
-  location: location
-  sku: {
-    name: 'Consumption'
-  }
-  properties: {
-    zoneRedundant: false
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: logAnalyticsWorkspace.properties.customerId
-        sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
-      }
-    }
-  }
-}
+param imageName string
+param imageTag string
+param envVariables array
 
 resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: '${solution}-${project}-${env}-ca'
@@ -50,8 +17,8 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
     type: 'None'
   }
   properties: {
-    environmentId: containerAppEnvironment.id
-    managedEnvironmentId: containerAppEnvironment.id
+    environmentId: containerAppEnvironmentId
+    managedEnvironmentId: containerAppEnvironmentId
     configuration: {
       secrets: [
         {
@@ -68,7 +35,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       ]
       ingress: {
         external: true
-        targetPort: envPort
+        targetPort: envVariables[0].value
         exposedPort: 0
         transport: 'Auto'
         traffic: [
@@ -81,7 +48,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
       }
       dapr: {
         enabled: true
-        appPort: envPort
+        appPort: envVariables[0].value
         appId: '${solution}-${project}-${env}-container'
         appProtocol: 'http'
         enableApiLogging: false
@@ -96,28 +63,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
         {
           image: '${imageName}:${imageTag}'
           name: '${solution}-${project}-${env}-container'
-          env: [
-            {
-              name: 'PORT'
-              value: string(envPort)
-            }
-            {
-              name: 'MONGO_DB_CONNECTION_STRING'
-              value: envMongoDbConnectionString
-            }
-            {
-              name: 'GOOGLE_CLIENT_ID'
-              value: envGoogleClientId
-            }
-            {
-              name: 'GOOGLE_CLIENT_SECRET'
-              value: envGoogleClientSecret
-            }
-            {
-              name: 'COOKIE_KEY'
-              value: envCookieKey
-            }
-          ]
+          env: envVariables
           resources: {
             cpu: '0.25'
             memory: '0.5Gi'

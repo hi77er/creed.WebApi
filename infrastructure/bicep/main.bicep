@@ -1,8 +1,11 @@
 param location string = resourceGroup().location
 param solution string
-param project string
-param imageName string
-param imageTag string
+param apiProject string
+param clientProject string
+param apiImageName string
+param apiImageTag string
+param clientImageName string
+param clientImageTag string
 
 param primaryRegion string = location
 param serverVersion string = '4.2'
@@ -10,17 +13,33 @@ param sharedAutoscaleMaxThroughput int = 1000
 
 var devSuffix = 'dev'
 var prodSuffix = 'prod'
-var containerRegistryName = '${solution}acr'
+var devContainerRegistryName = toLower('${solution}${devSuffix}devacr')
+var prodContainerRegistryName = toLower('${solution}${prodSuffix}acr')
 var keyVaultName = '${solution}-key-vault'
-var keyVaultSecretName = '${containerRegistryName}AdminPassword'
+var devCRAdminSecretName = '${devContainerRegistryName}AdminPassword'
+var prodCRAdminSecretName = '${prodContainerRegistryName}AdminPassword'
 
-var devDbAccountName = toLower('${solution}-${project}-${devSuffix}-mongodb-account')
-var devDbName = toLower('${solution}-${project}-${devSuffix}-mongodb')
-var prodDbAccountName = toLower('${solution}-${project}-${prodSuffix}-mongodb-account')
-var prodDbName = toLower('${solution}-${project}-${prodSuffix}-mongodb')
+var devDbAccountName = toLower('${solution}-${devSuffix}-mongodb-account')
+var devDbName = toLower('${solution}-${devSuffix}-mongodb')
+var prodDbAccountName = toLower('${solution}-${prodSuffix}-mongodb-account')
+var prodDbName = toLower('${solution}-${prodSuffix}-mongodb')
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
-  name: containerRegistryName
+var devAPIPort = 80
+var devClientPort = 80
+var devGoogleClientId = '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
+var devGoogleClientSecret = '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'
+var devCookieKey = 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
+
+var prodAPIPort = 80
+var prodClientPort = 80
+var prodGoogleClientId = '899455933664-q1r38u10d5icf12g8gim6ueib9g5ksnv.apps.googleusercontent.com'
+var prodGoogleClientSecret = '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'
+var prodCookieKey = '6642ao87f68123gfs839uiifdi8192fkj83129087ajhfao87f68iu71839dasd131513129lca'
+
+// DEVELOPMENT ENV
+
+resource devContainerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
+  name: devContainerRegistryName
   location: location
   sku: {
     name: 'Basic'
@@ -50,11 +69,21 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
-resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: keyVaultSecretName
+resource devCRAdminSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: devCRAdminSecretName
   parent: keyVault
   properties: {
-    value: containerRegistry.listCredentials().passwords[0].value
+    value: devContainerRegistry.listCredentials().passwords[0].value
+  }
+}
+
+resource devLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
+  name: '${solution}-${devSuffix}-la-workspace'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
   }
 }
 
@@ -101,24 +130,100 @@ resource devMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022
   }
 }
 
+resource devContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
+  name: '${solution}-${devSuffix}-environment'
+  location: location
+  sku: {
+    name: 'Consumption'
+  }
+  properties: {
+    zoneRedundant: false
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: devLogAnalyticsWorkspace.properties.customerId
+        sharedKey: devLogAnalyticsWorkspace.listKeys().primarySharedKey
+      }
+    }
+  }
+}
+
 var devMongoDbConnectionString = listConnectionStrings(devDbAccount.id, devDbAccount.apiVersion).connectionStrings[0].connectionString
 
-module devContainerApp 'aca.bicep' = {
-  name: 'devContainerApp'
+module devAPIContainerApp 'aca.bicep' = {
+  name: 'devAPIContainerApp'
   params: {
     solution: solution
-    project: project
+    project: apiProject
     env: devSuffix
     location: location
-    imageName: imageName
-    imageTag: imageTag
-    containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
-    containerRegistryName: containerRegistryName
-    envPort: 80
-    envMongoDbConnectionString: devMongoDbConnectionString
-    envGoogleClientId: '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
-    envGoogleClientSecret: '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'
-    envCookieKey: 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
+    containerAppEnvironmentId: devContainerAppEnvironment.id
+    containerRegistryPassword: devContainerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: devContainerRegistryName
+    imageName: apiImageName
+    imageTag: apiImageTag
+    envVariables: [
+      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
+      { name: 'PORT', value: string(devAPIPort) }
+      { name: 'MONGO_DB_CONNECTION_STRING', value: devMongoDbConnectionString }
+      { name: 'GOOGLE_CLIENT_ID', value: devGoogleClientId }
+      { name: 'GOOGLE_CLIENT_SECRET', value: devGoogleClientSecret }
+      { name: 'COOKIE_KEY', value: devCookieKey }
+    ]
+  }
+}
+
+module devClientContainerApp 'aca.bicep' = {
+  name: 'devClientContainerApp'
+  params: {
+    solution: solution
+    project: clientProject
+    env: devSuffix
+    location: location
+    containerAppEnvironmentId: devContainerAppEnvironment.id
+    containerRegistryPassword: devContainerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: devContainerRegistryName
+    imageName: clientImageName
+    imageTag: clientImageTag
+    envVariables: [
+      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
+      { name: 'PORT', value: string(devClientPort) }
+    ]
+  }
+}
+
+// PRODUCTION ENV
+
+resource prodContainerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
+  name: devContainerRegistryName
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: true
+    publicNetworkAccess: 'Enabled'
+    networkRuleBypassOptions: 'AzureServices'
+    zoneRedundancy: 'Disabled'
+    anonymousPullEnabled: false
+  }
+}
+
+resource prodCRAdminSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: prodCRAdminSecretName
+  parent: keyVault
+  properties: {
+    value: prodContainerRegistry.listCredentials().passwords[0].value
+  }
+}
+
+resource prodLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
+  name: '${solution}-${prodSuffix}-la-workspace'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
   }
 }
 
@@ -165,26 +270,67 @@ resource prodMongoDB 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@202
   }
 }
 
-var prodMongoDbConnectionString = listConnectionStrings(prodDbAccount.id, prodDbAccount.apiVersion).connectionStrings[0].connectionString
-
-module prodContainerApp 'aca.bicep' = {
-  name: 'prodContainerApp'
-  params: {
-    solution: solution
-    project: project
-    env: prodSuffix
-    location: location
-    imageName: imageName
-    imageTag: imageTag
-    containerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
-    containerRegistryName: containerRegistryName
-    envPort: 80
-    envMongoDbConnectionString: prodMongoDbConnectionString
-    envGoogleClientId: '899455933664-q1r38u10d5icf12g8gim6ueib9g5ksnv.apps.googleusercontent.com'
-    envGoogleClientSecret: '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'
-    envCookieKey: 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
+resource prodContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
+  name: '${solution}-${prodSuffix}-environment'
+  location: location
+  sku: {
+    name: 'Consumption'
+  }
+  properties: {
+    zoneRedundant: false
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: prodLogAnalyticsWorkspace.properties.customerId
+        sharedKey: prodLogAnalyticsWorkspace.listKeys().primarySharedKey
+      }
+    }
   }
 }
 
-output DevContainerAppUrl string = devContainerApp.outputs.ContainerAppUrl
-output ProdContainerAppUrl string = prodContainerApp.outputs.ContainerAppUrl
+var prodMongoDbConnectionString = listConnectionStrings(prodDbAccount.id, prodDbAccount.apiVersion).connectionStrings[0].connectionString
+
+module prodAPIContainerApp 'aca.bicep' = {
+  name: 'prodAPIContainerApp'
+  params: {
+    solution: solution
+    project: apiProject
+    env: prodSuffix
+    location: location
+    containerAppEnvironmentId: prodContainerAppEnvironment.id
+    containerRegistryPassword: prodContainerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: prodContainerRegistryName
+    imageName: apiImageName
+    imageTag: apiImageTag
+    envVariables: [
+      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
+      { name: 'PORT', value: string(prodAPIPort) }
+      { name: 'MONGO_DB_CONNECTION_STRING', value: prodMongoDbConnectionString }
+      { name: 'GOOGLE_CLIENT_ID', value: prodGoogleClientId }
+      { name: 'GOOGLE_CLIENT_SECRET', value: prodGoogleClientSecret }
+      { name: 'COOKIE_KEY', value: prodCookieKey }
+    ]
+  }
+}
+
+module prodClientContainerApp 'aca.bicep' = {
+  name: 'prodClientContainerApp'
+  params: {
+    solution: solution
+    project: clientProject
+    env: prodSuffix
+    location: location
+    containerAppEnvironmentId: prodContainerAppEnvironment.id
+    containerRegistryPassword: prodContainerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: prodContainerRegistryName
+    imageName: clientImageName
+    imageTag: clientImageTag
+    envVariables: [
+      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
+      { name: 'PORT', value: string(prodClientPort) }
+    ]
+  }
+}
+
+output DevAPIContainerAppUrl string = devAPIContainerApp.outputs.ContainerAppUrl
+output ProdAPIContainerAppUrl string = prodAPIContainerApp.outputs.ContainerAppUrl
