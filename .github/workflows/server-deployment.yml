@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test
-      - build-image
+      - build-image-dev
 
     if: github.ref == 'refs/heads/develop'
     steps:
@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test
-      - build-image
+      - build-image-prod
 
     if: github.ref == 'refs/heads/master'
     steps:
