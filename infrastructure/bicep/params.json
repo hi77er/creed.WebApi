@@ -5,13 +5,22 @@
     "solution": {
       "value": "srvymkr"
     },
-    "project": {
+    "capiProject": {
       "value": "server"
     },
-    "imageName": {
+    "clientProject": {
+      "value": "client"
+    },
+    "apiImageName": {
       "value": "mcr.microsoft.com/azuredocs/containerapps-helloworld"
     },
-    "imageTag": {
+    "apiImageTag": {
+      "value": "latest"
+    },
+    "clientImageName": {
+      "value": "mcr.microsoft.com/azuredocs/containerapps-helloworld"
+    },
+    "clientImageTag": {
       "value": "latest"
     }
   }
