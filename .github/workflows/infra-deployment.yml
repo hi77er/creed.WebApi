@@ -32,7 +32,7 @@ jobs:
       
       # Deleting the RG will mark the Key Vault as Deleted but not delete it. Purge it with this command:
       #   az keyvault purge --name srvymkr-key-vault 
-      - name: Create Resource Group
+      - name: Purge Old Key Vault
         uses: Azure/cli@v1.0.6
         with:
           inlineScript: | 
