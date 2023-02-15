@@ -29,12 +29,22 @@ var devClientPort = 80
 var devGoogleClientId = '450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com'
 var devGoogleClientSecret = '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'
 var devCookieKey = 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
+var devJwtTokenSecret = 'dddsd-dahdhd-kjfjdhrhrerj-uurhr-jeee9'
+var devRefreshTokenSecret = 'kmn2gkjddshfdjh73273bdjsj84-jdjd7632vg'
+var devJwtExpirySeconds = 60 * 15
+var devRefreshTokenExpirySeconds = 60 * 60 * 24 * 30
+var devCorsWhitelistedDomains = 'http://localhost:5000'
 
 var prodAPIPort = 80
 var prodClientPort = 80
 var prodGoogleClientId = '899455933664-q1r38u10d5icf12g8gim6ueib9g5ksnv.apps.googleusercontent.com'
 var prodGoogleClientSecret = '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'
 var prodCookieKey = '6642ao87f68123gfs839uiifdi8192fkj83129087ajhfao87f68iu71839dasd131513129lca'
+var prodJwtTokenSecret = 'jdsd-dahdhd-kjfjdhrhrerj-uurhr-jjge7'
+var prodRefreshTokenSecret = '34f2gkjddshfdjh73273bdjsj84-jdjd763274'
+var prodJwtExpirySeconds = 60 * 15
+var prodRefreshTokenExpirySeconds = 60 * 60 * 24 * 30
+var prodCorsWhitelistedDomains = 'http://localhost:5000'
 
 // DEVELOPMENT ENV
 
@@ -166,9 +176,14 @@ module devAPIContainerApp 'aca.bicep' = {
       // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
       { name: 'PORT', value: string(devAPIPort) }
       { name: 'MONGO_DB_CONNECTION_STRING', value: devMongoDbConnectionString }
-      { name: 'GOOGLE_CLIENT_ID', value: devGoogleClientId }
-      { name: 'GOOGLE_CLIENT_SECRET', value: devGoogleClientSecret }
-      { name: 'COOKIE_KEY', value: devCookieKey }
+      { name: 'AUTH_GOOGLE_CLIENT_ID', value: devGoogleClientId }
+      { name: 'AUTH_GOOGLE_CLIENT_SECRET', value: devGoogleClientSecret }
+      { name: 'AUTH_COOKIE_KEY', value: devCookieKey }
+      { name: 'AUTH_JWT_TOKEN_SECRET', value: devJwtTokenSecret }
+      { name: 'AUTH_REFRESH_TOKEN_SECRET', value: devRefreshTokenSecret }
+      { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: devJwtExpirySeconds }
+      { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: devRefreshTokenExpirySeconds }
+      { name: 'CORS_WHITELISTED_DOMAINS', value: devCorsWhitelistedDomains }
     ]
   }
 }
@@ -306,9 +321,14 @@ module prodAPIContainerApp 'aca.bicep' = {
       // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
       { name: 'PORT', value: string(prodAPIPort) }
       { name: 'MONGO_DB_CONNECTION_STRING', value: prodMongoDbConnectionString }
-      { name: 'GOOGLE_CLIENT_ID', value: prodGoogleClientId }
-      { name: 'GOOGLE_CLIENT_SECRET', value: prodGoogleClientSecret }
-      { name: 'COOKIE_KEY', value: prodCookieKey }
+      { name: 'AUTH_GOOGLE_CLIENT_ID', value: prodGoogleClientId }
+      { name: 'AUTH_GOOGLE_CLIENT_SECRET', value: prodGoogleClientSecret }
+      { name: 'AUTH_COOKIE_KEY', value: prodCookieKey }
+      { name: 'AUTH_JWT_TOKEN_SECRET', value: prodJwtTokenSecret }
+      { name: 'AUTH_REFRESH_TOKEN_SECRET', value: prodRefreshTokenSecret }
+      { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: prodJwtExpirySeconds }
+      { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: prodRefreshTokenExpirySeconds }
+      { name: 'CORS_WHITELISTED_DOMAINS', value: prodCorsWhitelistedDomains }
     ]
   }
 }
