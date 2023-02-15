@@ -1,29 +1,25 @@
-const express = require('express');
 const { default: mongoose } = require("mongoose");
-const cookieSession = require('cookie-session');
+const express = require('express');
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
 const passport = require('passport');
 
-/////
-// Mongoose
-/////
+const cookieSession = require('cookie-session');
 
+// Configure mongo data model
 require('./models/User');
+
 // Configuring GoogleStrategy for passport
 require('./services/passport');
 
-mongoose
-  .connect(
-    process.env.MONGO_DB_CONNECTION_STRING,
-    { useNewUrlParser: true }
-  )
-  .then(() => console.log("MongoDB Connected."))
-  .catch((err) => console.log("err"));
+// Configure mongodb connection 
+require('./services/mongodb');
 
-/////
-// App
-/////
-
+// Configure App
 const app = express();
+app.use(bodyParser.json());
+app.use(cookieParser(process.env.AUTH_COOKIE_KEY));
 
 app.use(
   cookieSession({
@@ -31,6 +27,7 @@ app.use(
     keys: [process.env.AUTH_COOKIE_KEY]
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
