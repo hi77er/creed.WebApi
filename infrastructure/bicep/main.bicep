@@ -42,8 +42,8 @@ var prodGoogleClientSecret = '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'
 var prodCookieKey = '6642ao87f68123gfs839uiifdi8192fkj83129087ajhfao87f68iu71839dasd131513129lca'
 var prodJwtTokenSecret = 'jdsd-dahdhd-kjfjdhrhrerj-uurhr-jjge7'
 var prodRefreshTokenSecret = '34f2gkjddshfdjh73273bdjsj84-jdjd763274'
-var prodJwtExpirySeconds = 60 * 15
-var prodRefreshTokenExpirySeconds = 60 * 60 * 24 * 30
+var prodJwtExpirySeconds = 900 // 15 mins = 60 seconds * 15 minutes
+var prodRefreshTokenExpirySeconds = 2592000 // 30 days = 60 seconds * 60 minutes * 24 hours * 30 days
 var prodCorsWhitelistedDomains = 'http://localhost:5000'
 
 // DEVELOPMENT ENV
