@@ -31,8 +31,8 @@ var devGoogleClientSecret = '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'
 var devCookieKey = 'ajhfao87f68iu71839uiifdi8192fkj83129087ajhfao87f68iu71839uiifdi8192fkj83129087'
 var devJwtTokenSecret = 'dddsd-dahdhd-kjfjdhrhrerj-uurhr-jeee9'
 var devRefreshTokenSecret = 'kmn2gkjddshfdjh73273bdjsj84-jdjd7632vg'
-var devJwtExpirySeconds = 60 * 15
-var devRefreshTokenExpirySeconds = 60 * 60 * 24 * 30
+var devJwtExpirySeconds = 900 // 15 mins = 60 seconds * 15 minutes
+var devRefreshTokenExpirySeconds = 2592000 // 30 days = 60 seconds * 60 minutes * 24 hours * 30 days
 var devCorsWhitelistedDomains = 'http://localhost:5000'
 
 var prodAPIPort = 80
