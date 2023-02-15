@@ -4,12 +4,12 @@ name: Srvymkr.Server Auto Deployment
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches:
-      - master
-      - develop
-    paths:
-      - '**'
-      - '.github/workflows/server-deployment.yml'
+    # branches:
+    #   - master
+    #   - develop
+    # paths:
+    #   - '**'
+    #   - '.github/workflows/server-deployment.yml'
 
   # Allow mannually trigger
   workflow_dispatch:
