@@ -3,13 +3,13 @@ name: Srvymkr.Server Auto Deployment
 # When this action will be executed
 on:
   # Automatically trigger it when detected changes in repo
-  # push:
-  #   branches:
-  #     - master
-  #     - develop
-  #   paths:
-  #     - '**'
-  #     - '.github/workflows/server-deployment.yml'
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - '**'
+      - '.github/workflows/server-deployment.yml'
 
   # Allow mannually trigger
   workflow_dispatch:
