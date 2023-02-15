@@ -10,8 +10,13 @@ const cookieSession = require('cookie-session');
 // Configure mongo data model
 require('./models/User');
 
-// Configuring GoogleStrategy for passport
-require('./services/passport');
+require("./services/auth/authenticate");
+// Configuring Local Auth Strategy for passport
+require("./services/auth/strategies/localStrategy");
+// Configuring JWT Auth Strategy for passport
+require("./services/auth/strategies/jwtStrategy");
+// Configuring Google OAuth Strategy for passport
+require('./services/auth/strategies/googleStrategy');
 
 // Configure mongodb connection 
 require('./services/mongodb');
@@ -50,8 +55,22 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 // Configuring routs
-require('./routes/authRoutеs')(app);
-require('./routes/dashboardRoutеs')(app);
+
+const authRouter = require("./routes/authRoutes");
+const dashboardRouter = require("./routes/dashboardRoutes");
+const googleOAuthRouter = require("./routes/googleOAuthRoutes");
+const userRouter = require("./routes/userRoutes");
+
+app.use("/auth", authRouter);
+app.use("/oauth/google", googleOAuthRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/user", userRouter);
+
+const User = mongoose.model('users');
+User
+  .findOne({ googleId: '113889688500356944562' })
+  .then(usr => console.log(usr));
+
 
 const PORT = process.env.PORT || 80;
 app.listen(PORT);

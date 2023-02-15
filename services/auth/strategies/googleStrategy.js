@@ -2,7 +2,6 @@ require('dotenv').config();
 const mongoose = require("mongoose");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-
 const User = mongoose.model('users');
 
 passport.serializeUser((user, done) => {
@@ -10,7 +9,11 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-  User.findById(id).then((user) => { done(null, user); });
+  User
+    .findById(id)
+    .then((user) => {
+      done(null, user);
+    });
 });
 
 passport.use(
@@ -22,10 +25,21 @@ passport.use(
       proxy: true
     },
     (accessToken, refreshToken, profile, done) => {
+      console.log('refreshToken');
+      console.log(refreshToken);
+      console.log('accessToken');
+      console.log(accessToken);
       User
         .findOne({ googleId: profile.id })
         .then(async (existingUser) => {
           if (existingUser) {
+            // TODO: Update session for specific device, instead of rewriting all of them.
+            User
+              .updateOne(
+                { googleId: '113889688500356944562' },
+                { sessions: [{ refreshToken: refreshToken }] })
+              .then(() => console.log('Updated'));
+
             done(null, existingUser);
           } else {
             new User({
@@ -33,9 +47,10 @@ passport.use(
               firstName: profile.name.givenName,
               lastName: profile.name.familyName,
               gender: profile.gender,
+              authStrategy: 'google',
+              sessions: [{ refreshToken: refreshToken }],
+              photos: profile.photos,
               googleId: profile.id,
-              googleRefreshToken: refreshToken,
-              googlePhotos: profile.photos
             })
               .save()
               .then((savedUser) => done(null, savedUser));
