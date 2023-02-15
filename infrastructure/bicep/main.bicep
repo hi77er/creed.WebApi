@@ -181,8 +181,8 @@ module devAPIContainerApp 'aca.bicep' = {
       { name: 'AUTH_COOKIE_KEY', value: devCookieKey }
       { name: 'AUTH_JWT_TOKEN_SECRET', value: devJwtTokenSecret }
       { name: 'AUTH_REFRESH_TOKEN_SECRET', value: devRefreshTokenSecret }
-      { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: devJwtExpirySeconds }
-      { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: devRefreshTokenExpirySeconds }
+      { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: string(devJwtExpirySeconds) }
+      { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: string(devRefreshTokenExpirySeconds) }
       { name: 'CORS_WHITELISTED_DOMAINS', value: devCorsWhitelistedDomains }
     ]
   }
@@ -326,8 +326,8 @@ module prodAPIContainerApp 'aca.bicep' = {
       { name: 'AUTH_COOKIE_KEY', value: prodCookieKey }
       { name: 'AUTH_JWT_TOKEN_SECRET', value: prodJwtTokenSecret }
       { name: 'AUTH_REFRESH_TOKEN_SECRET', value: prodRefreshTokenSecret }
-      { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: prodJwtExpirySeconds }
-      { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: prodRefreshTokenExpirySeconds }
+      { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: string(prodJwtExpirySeconds) }
+      { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: string(prodRefreshTokenExpirySeconds) }
       { name: 'CORS_WHITELISTED_DOMAINS', value: prodCorsWhitelistedDomains }
     ]
   }

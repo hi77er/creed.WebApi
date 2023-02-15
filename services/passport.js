@@ -6,12 +6,10 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = mongoose.model('users');
 
 passport.serializeUser((user, done) => {
-  console.log('ser: ', user.id);
   done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
-  console.log('deser: ', id);
   User.findById(id).then((user) => { done(null, user); });
 });
 
@@ -36,9 +34,8 @@ passport.use(
               lastName: profile.name.familyName,
               gender: profile.gender,
               googleId: profile.id,
-              googlePhotos: profile.photos,
-              googleAccessToken: accessToken,
-              googleRefreshToken: refreshToken
+              googleRefreshToken: refreshToken,
+              googlePhotos: profile.photos
             })
               .save()
               .then((savedUser) => done(null, savedUser));

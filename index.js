@@ -31,6 +31,24 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+const whitelist = process.env.WHITELISTED_DOMAINS
+  ? process.env.WHITELISTED_DOMAINS.split(",")
+  : []
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
+
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
+
 // Configuring routs
 require('./routes/authRoutеs')(app);
 require('./routes/dashboardRoutеs')(app);
