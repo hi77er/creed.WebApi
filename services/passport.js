@@ -37,6 +37,8 @@ passport.use(
               gender: profile.gender,
               googleId: profile.id,
               googlePhotos: profile.photos,
+              googleAccessToken: accessToken,
+              googleRefreshToken: refreshToken
             })
               .save()
               .then((savedUser) => done(null, savedUser));

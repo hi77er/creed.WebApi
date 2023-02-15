@@ -6,9 +6,10 @@ let UserSchema = new Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   gender: { type: String, required: false },
-  // roles: [{ type: Schema.Types.ObjectId, ref: 'roles', required: true }],
   googleId: { type: String, required: false },
+  googleRefreshToken: { type: String, required: false },
   googlePhotos: [{ type: { value: String }, required: false }],
+  // roles: [{ type: Schema.Types.ObjectId, ref: 'roles', required: true }],
 });
 
 module.exports = User = mongoose.model("users", UserSchema);
