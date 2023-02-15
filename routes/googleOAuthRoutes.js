@@ -21,9 +21,10 @@ router.get(
 // request parameter and will execute another overwritten version of passport.authenticate.
 // Calling this overwritten passport.authenticate method will call the GoogleStrategy's
 // callback with the actual Access Token, that Google generates for us.
+// passport.authenticate will set 'req.user'
 router.get(
   '/callback',
-  passport.authorize('google')
+  passport.authenticate('google')
 );
 
 module.exports = router;
