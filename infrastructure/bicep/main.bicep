@@ -33,7 +33,6 @@ var devJwtTokenSecret = 'dddsd-dahdhd-kjfjdhrhrerj-uurhr-jeee9'
 var devRefreshTokenSecret = 'kmn2gkjddshfdjh73273bdjsj84-jdjd7632vg'
 var devJwtExpirySeconds = 900 // 15 mins = 60 seconds * 15 minutes
 var devRefreshTokenExpirySeconds = 2592000 // 30 days = 60 seconds * 60 minutes * 24 hours * 30 days
-var devCorsWhitelistedDomains = 'http://localhost:5000'
 
 var prodAPIPort = 80
 var prodClientPort = 80
@@ -44,7 +43,6 @@ var prodJwtTokenSecret = 'jdsd-dahdhd-kjfjdhrhrerj-uurhr-jjge7'
 var prodRefreshTokenSecret = '34f2gkjddshfdjh73273bdjsj84-jdjd763274'
 var prodJwtExpirySeconds = 900 // 15 mins = 60 seconds * 15 minutes
 var prodRefreshTokenExpirySeconds = 2592000 // 30 days = 60 seconds * 60 minutes * 24 hours * 30 days
-var prodCorsWhitelistedDomains = 'http://localhost:5000'
 
 // DEVELOPMENT ENV
 
@@ -158,7 +156,27 @@ resource devContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-0
   }
 }
 
+module devClientContainerApp 'aca.bicep' = {
+  name: 'devClientContainerApp'
+  params: {
+    solution: solution
+    project: clientProject
+    env: devSuffix
+    location: location
+    containerAppEnvironmentId: devContainerAppEnvironment.id
+    containerRegistryPassword: devContainerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: devContainerRegistryName
+    imageName: clientImageName
+    imageTag: clientImageTag
+    envVariables: [
+      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
+      { name: 'PORT', value: string(devClientPort) }
+    ]
+  }
+}
+
 var devMongoDbConnectionString = listConnectionStrings(devDbAccount.id, devDbAccount.apiVersion).connectionStrings[0].connectionString
+var devCorsWhitelistedDomains = devClientContainerApp.outputs.ContainerAppUrl
 
 module devAPIContainerApp 'aca.bicep' = {
   name: 'devAPIContainerApp'
@@ -184,25 +202,6 @@ module devAPIContainerApp 'aca.bicep' = {
       { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: string(devJwtExpirySeconds) }
       { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: string(devRefreshTokenExpirySeconds) }
       { name: 'CORS_WHITELISTED_DOMAINS', value: devCorsWhitelistedDomains }
-    ]
-  }
-}
-
-module devClientContainerApp 'aca.bicep' = {
-  name: 'devClientContainerApp'
-  params: {
-    solution: solution
-    project: clientProject
-    env: devSuffix
-    location: location
-    containerAppEnvironmentId: devContainerAppEnvironment.id
-    containerRegistryPassword: devContainerRegistry.listCredentials().passwords[0].value
-    containerRegistryName: devContainerRegistryName
-    imageName: clientImageName
-    imageTag: clientImageTag
-    envVariables: [
-      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
-      { name: 'PORT', value: string(devClientPort) }
     ]
   }
 }
@@ -303,7 +302,27 @@ resource prodContainerAppEnvironment 'Microsoft.App/managedEnvironments@2022-06-
   }
 }
 
+module prodClientContainerApp 'aca.bicep' = {
+  name: 'prodClientContainerApp'
+  params: {
+    solution: solution
+    project: clientProject
+    env: prodSuffix
+    location: location
+    containerAppEnvironmentId: prodContainerAppEnvironment.id
+    containerRegistryPassword: prodContainerRegistry.listCredentials().passwords[0].value
+    containerRegistryName: prodContainerRegistryName
+    imageName: clientImageName
+    imageTag: clientImageTag
+    envVariables: [
+      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
+      { name: 'PORT', value: string(prodClientPort) }
+    ]
+  }
+}
+
 var prodMongoDbConnectionString = listConnectionStrings(prodDbAccount.id, prodDbAccount.apiVersion).connectionStrings[0].connectionString
+var prodCorsWhitelistedDomains = prodClientContainerApp.outputs.ContainerAppUrl
 
 module prodAPIContainerApp 'aca.bicep' = {
   name: 'prodAPIContainerApp'
@@ -329,25 +348,6 @@ module prodAPIContainerApp 'aca.bicep' = {
       { name: 'AUTH_JWT_TOKEN_EXPIRY_SECONDS', value: string(prodJwtExpirySeconds) }
       { name: 'AUTH_REFRESH_TOKEN_EXPIRY_SECONDS', value: string(prodRefreshTokenExpirySeconds) }
       { name: 'CORS_WHITELISTED_DOMAINS', value: prodCorsWhitelistedDomains }
-    ]
-  }
-}
-
-module prodClientContainerApp 'aca.bicep' = {
-  name: 'prodClientContainerApp'
-  params: {
-    solution: solution
-    project: clientProject
-    env: prodSuffix
-    location: location
-    containerAppEnvironmentId: prodContainerAppEnvironment.id
-    containerRegistryPassword: prodContainerRegistry.listCredentials().passwords[0].value
-    containerRegistryName: prodContainerRegistryName
-    imageName: clientImageName
-    imageTag: clientImageTag
-    envVariables: [
-      // PORT - SHOULD BE ALWAYS FIRST IN THE ARRAY
-      { name: 'PORT', value: string(prodClientPort) }
     ]
   }
 }

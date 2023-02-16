@@ -10,8 +10,13 @@ const cookieSession = require('cookie-session');
 // Configure mongo data model
 require('./models/User');
 
-// Configuring GoogleStrategy for passport
-require('./services/passport');
+require("./services/auth/authenticate");
+// Configuring Local Auth Strategy for passport
+require("./services/auth/strategies/localStrategy");
+// Configuring JWT Auth Strategy for passport
+require("./services/auth/strategies/jwtStrategy");
+// Configuring Google OAuth Strategy for passport
+require('./services/auth/strategies/googleStrategy');
 
 // Configure mongodb connection 
 require('./services/mongodb');
@@ -21,15 +26,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser(process.env.AUTH_COOKIE_KEY));
 
-app.use(
-  cookieSession({
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    keys: [process.env.AUTH_COOKIE_KEY]
-  })
-);
-
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(
+//   cookieSession({
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     keys: [process.env.AUTH_COOKIE_KEY]
+//   })
+// );
 
 const whitelist = process.env.WHITELISTED_DOMAINS
   ? process.env.WHITELISTED_DOMAINS.split(",")
@@ -43,15 +45,25 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"))
     }
   },
-
   credentials: true,
 }
 
 app.use(cors(corsOptions))
 
+app.use(passport.initialize());
+// app.use(passport.session());
+
 // Configuring routs
-require('./routes/authRoutеs')(app);
-require('./routes/dashboardRoutеs')(app);
+
+const authRouter = require("./routes/authRoutes");
+const dashboardRouter = require("./routes/dashboardRoutes");
+const googleOAuthRouter = require("./routes/googleOAuthRoutes");
+const userRouter = require("./routes/userRoutes");
+
+app.use("/auth", authRouter);
+app.use("/oauth/google", googleOAuthRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/user", userRouter);
 
 const PORT = process.env.PORT || 80;
 app.listen(PORT);

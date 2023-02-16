@@ -1,0 +1,20 @@
+{
+  "client": "Thunder Client",
+  "environmentName": "Creed WebApi Prod Env",
+  "dateExported": "2023-01-28T23:50:50.920Z",
+  "version": "1.0",
+  "variables": [
+    {
+      "name": "PROTOCOL",
+      "value": "https"
+    },
+    {
+      "name": "HOSTNAME",
+      "value": "ca-srvymkr-server-prod.ashysand-f4468202.westeurope.azurecontainerapps.io"
+    },
+    {
+      "name": "PORT",
+      "value": "443"
+    }
+  ]
+}
