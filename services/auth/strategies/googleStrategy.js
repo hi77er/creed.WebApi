@@ -8,9 +8,9 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
+passport.deserializeUser((email, done) => {
   User
-    .findById(id)
+    .findOne({ email })
     .then((user) => {
       done(null, user);
     });
@@ -24,38 +24,43 @@ passport.use(
       callbackURL: '/oauth/google/callback',
       proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-      console.log('refreshToken');
-      console.log(refreshToken);
-      console.log('accessToken');
-      console.log(accessToken);
-      User
-        .findOne({ googleId: profile.id })
-        .then(async (existingUser) => {
-          if (existingUser) {
-            // TODO: Update session for specific device, instead of rewriting all of them.
-            User
-              .updateOne(
-                { googleId: '113889688500356944562' },
-                { sessions: [{ refreshToken: refreshToken }] })
-              .then(() => console.log('Updated'));
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ email: profile.emails[0].value });
 
-            done(null, existingUser);
-          } else {
-            new User({
-              emails: profile.emails.map(x => { x.value, verified = false }),
-              firstName: profile.name.givenName,
-              lastName: profile.name.familyName,
-              gender: profile.gender,
-              authStrategy: 'google',
-              sessions: [{ refreshToken: refreshToken }],
-              photos: profile.photos,
-              googleId: profile.id,
-            })
-              .save()
-              .then((savedUser) => done(null, savedUser));
+      if (existingUser) {
+        await existingUser.update(
+          {
+            $set: {
+              sessions: [
+                { authStrategy: 'google', refreshToken },
+                ...existingUser.sessions.filter(x => x.authStrategy != 'google')
+              ],
+              externalOAuth: [
+                {
+                  provider: 'google',
+                  email: profile.emails[0].value,
+                  externalProfileId: profile.id
+                },
+                ...existingUser.externalOAuth.filter(x => x.provider != 'google')
+              ]
+            }
           }
-        });
+        );
+
+        done(null, existingUser);
+      } else {
+        await new User({
+          email: profile.emails[0].value,
+          firstName: profile.name.givenName,
+          lastName: profile.name.familyName,
+          gender: profile.gender,
+          sessions: [{ authStrategy: 'google', refreshToken: refreshToken }],
+          photos: profile.photos,
+          externalOAuth: [{ provider: 'google', email: profile.emails[0].value, externalProfileId: profile.id }]
+        }).save();
+
+        done(null, savedUser);
+      }
     }
   )
 );

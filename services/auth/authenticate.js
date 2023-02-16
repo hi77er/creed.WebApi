@@ -1,3 +1,4 @@
+require('dotenv').config();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const dev = process.env.NODE_ENV !== "production";
@@ -12,16 +13,16 @@ exports.COOKIE_OPTIONS = {
   sameSite: "none",
 };
 
-exports.getToken = user => {
+exports.getToken = (user) => {
   const accessToken = jwt
-    .sign(user, process.env.AUTH_JWT_SECRET, {
+    .sign(user, process.env.AUTH_JWT_TOKEN_SECRET, {
       expiresIn: eval(process.env.AUTH_SESSION_EXPIRY_SECONDS),
     });
 
   return accessToken;
 };
 
-exports.getRefreshToken = user => {
+exports.getRefreshToken = (user) => {
   const refreshToken = jwt
     .sign(user, process.env.AUTH_REFRESH_TOKEN_SECRET, {
       expiresIn: eval(process.env.AUTH_REFRESH_TOKEN_EXPIRY_SECONDS),

@@ -33,9 +33,6 @@ app.use(
   })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
-
 const whitelist = process.env.WHITELISTED_DOMAINS
   ? process.env.WHITELISTED_DOMAINS.split(",")
   : []
@@ -48,11 +45,13 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"))
     }
   },
-
   credentials: true,
 }
 
 app.use(cors(corsOptions))
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Configuring routs
 
@@ -65,12 +64,6 @@ app.use("/auth", authRouter);
 app.use("/oauth/google", googleOAuthRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/user", userRouter);
-
-const User = mongoose.model('users');
-User
-  .findOne({ googleId: '113889688500356944562' })
-  .then(usr => console.log(usr));
-
 
 const PORT = process.env.PORT || 80;
 app.listen(PORT);
