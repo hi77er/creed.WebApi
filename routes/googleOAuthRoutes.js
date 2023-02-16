@@ -1,7 +1,9 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const passport = require("passport");
-
 const router = express.Router();
+const User = mongoose.model('users');
+const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
 
 router.get(
   '/',
@@ -24,7 +26,22 @@ router.get(
 // passport.authenticate will set 'req.user'
 router.get(
   '/callback',
-  passport.authenticate('google')
+  passport.authenticate('google'),
+  async (req, res) => {
+    const signedUser = await User.findOne({ _id: req.user._id });
+    const accessToken = getAccessToken({ _id: signedUser._id });
+    const refreshToken = getRefreshToken({ _id: signedUser._id });
+
+    signedUser.sessions = [
+      { authStrategy: 'google', refreshToken },
+      ...signedUser.sessions.filter(x => x.authStrategy != 'google')
+    ];
+
+    await signedUser.save();
+
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+    res.send({ success: true, accessToken });
+  }
 );
 
 module.exports = router;

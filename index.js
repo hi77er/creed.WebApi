@@ -26,12 +26,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser(process.env.AUTH_COOKIE_KEY));
 
-app.use(
-  cookieSession({
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    keys: [process.env.AUTH_COOKIE_KEY]
-  })
-);
+// app.use(
+//   cookieSession({
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     keys: [process.env.AUTH_COOKIE_KEY]
+//   })
+// );
 
 const whitelist = process.env.WHITELISTED_DOMAINS
   ? process.env.WHITELISTED_DOMAINS.split(",")
@@ -51,7 +51,7 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 // Configuring routs
 

@@ -1,8 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
-
 const User = mongoose.model('users');
+const { verifyUser } = require("../services/auth/authenticate");
 
 router.get(
   '/list/delete',
@@ -34,13 +34,9 @@ router.get(
 
 router.get(
   '/current',
+  verifyUser,
   (req, res) => {
-    if (req.isAuthenticated()) {
-      res.send(req.user);
-    } else {
-      res.status = 401;
-      res.send('Unauthorized');
-    }
+    res.send(req.user);
   }
 );
 

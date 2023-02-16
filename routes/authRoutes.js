@@ -4,10 +4,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-
-const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
-const User = mongoose.model('users');
 const router = express.Router();
+const User = mongoose.model('users');
+const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
 
 const returnUnauthorized = (res) => {
   res.statusCode = 401;
@@ -38,20 +37,18 @@ router.post("/signup", (req, res) => {
             gender: req.body.gender
           });
 
-          User
-            .register(newUser, req.body.password)
-            .then((registeredUser) => {
-              const accessToken = getAccessToken({ _id: registeredUser._id });
-              const refreshToken = getRefreshToken({ _id: registeredUser._id });
-              registeredUser.sessions.push({ authStrategy: 'jwt', refreshToken });
+          const registeredUser = await User.register(newUser, req.body.password);
+          const accessToken = getAccessToken({ _id: registeredUser._id });
+          const refreshToken = getRefreshToken({ _id: registeredUser._id });
 
-              registeredUser
-                .save()
-                .then((savedUser) => {
-                  res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
-                  res.send({ success: true, accessToken });
-                });
-            });
+          registeredUser.sessions = [
+            { authStrategy: 'jwt', refreshToken },
+            ...registeredUser.sessions.filter(x => x.authStrategy != 'jwt')
+          ];
+
+          await registeredUser.save();
+          res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+          res.send({ success: true, accessToken });
         }
       });
   }
