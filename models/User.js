@@ -34,12 +34,17 @@ const UserSchema = new Schema({
 });
 
 //Remove sessions' info from the object that we will serialize to send trough response
-// User.set("toJSON", {
-//   transform: function (doc, ret, options) {
-//     delete ret.sessions
-//     return ret;
-//   },
-// });
+UserSchema.set("toJSON", {
+  transform: (doc, ret, options) => {
+    ret.sessions = ret
+      .sessions
+      .map(x => {
+        x.refreshToken = "Censored ;)";
+        return x;
+      });
+    return ret;
+  },
+});
 
 UserSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 

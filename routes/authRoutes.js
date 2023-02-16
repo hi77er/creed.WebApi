@@ -1,10 +1,18 @@
+require('dotenv').config();
+const { signedCookie } = require("cookie-parser");
 const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 const { getToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
 const User = mongoose.model('users');
 const router = express.Router();
+
+const returnUnauthorized = (res) => {
+  res.statusCode = 401;
+  res.send("Unauthorized");
+};
 
 router.post("/signup", (req, res) => {
   // Verify that first name is not empty
@@ -69,6 +77,76 @@ router.post(
 
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
     res.send({ success: true, token });
+  });
+
+router.post(
+  "/refresh",
+  async (req, res, next) => {
+    const { signedCookies = {} } = req;
+    const { refreshToken } = signedCookies;
+
+    if (refreshToken) {
+      try {
+        const payload = jwt.verify(refreshToken, process.env.AUTH_REFRESH_TOKEN_SECRET);
+        const userId = payload._id;
+
+        User
+          .findOne({ _id: userId })
+          .then(
+            (user) => {
+              if (user) {
+                // Find the refresh token against the user record in database
+                const tokenIndex = user
+                  .sessions
+                  .findIndex((session) => session.refreshToken === refreshToken);
+
+                if (tokenIndex === -1) {
+                  returnUnauthorized(res);
+                } else {
+                  const token = getToken({ _id: userId });
+                  // If the refresh token exists, then create new one and replace it.
+                  const newRefreshToken = getRefreshToken({ _id: userId });
+
+                  console.log('user.sessions 1')
+                  console.log(user.sessions)
+
+                  console.log('user.sessions[0] 2')
+                  console.log(user.sessions[0])
+
+                  user.sessions = user
+                    .sessions
+                    .map((session) => {
+                      if (session._id === user.sessions[tokenIndex]._id)
+                        session.refreshToken = newRefreshToken;
+                      return session;
+                    });
+
+                  console.log('user.sessions 2')
+                  console.log(user.sessions)
+
+                  console.log('user.sessions[0] 2')
+                  console.log(user.sessions[0])
+
+                  // user
+                  //   .save()
+                  //   .then((user) => {
+                  //     res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
+                  //     res.send({ success: true, token });
+                  //   });
+                  res.send({ success: true, token });
+                }
+              } else {
+                returnUnauthorized(res);
+              }
+            },
+            err => next(err)
+          )
+      } catch (err) {
+        returnUnauthorized(res);
+      }
+    } else {
+      returnUnauthorized(res);
+    }
   });
 
 router.get(
