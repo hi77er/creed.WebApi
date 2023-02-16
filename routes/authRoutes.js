@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
-const { getToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
+const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
 const User = mongoose.model('users');
 const router = express.Router();
 
@@ -41,7 +41,7 @@ router.post("/signup", (req, res) => {
           User
             .register(newUser, req.body.password)
             .then((registeredUser) => {
-              const token = getToken({ _id: registeredUser._id });
+              const accessToken = getAccessToken({ _id: registeredUser._id });
               const refreshToken = getRefreshToken({ _id: registeredUser._id });
               registeredUser.sessions.push({ authStrategy: 'jwt', refreshToken });
 
@@ -49,7 +49,7 @@ router.post("/signup", (req, res) => {
                 .save()
                 .then((savedUser) => {
                   res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
-                  res.send({ success: true, token });
+                  res.send({ success: true, accessToken });
                 });
             });
         }
@@ -61,7 +61,7 @@ router.post(
   "/signin",
   passport.authenticate("local"),
   async (req, res, next) => {
-    const token = getToken({ _id: req.user._id });
+    const accessToken = getAccessToken({ _id: req.user._id });
     const refreshToken = getRefreshToken({ _id: req.user._id });
 
     const existingUser = await User.findOne({ _id: req.user._id });
@@ -76,7 +76,7 @@ router.post(
     });
 
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
-    res.send({ success: true, token });
+    res.send({ success: true, accessToken });
   });
 
 router.post(
@@ -100,7 +100,7 @@ router.post(
           if (tokenIndex === -1) {
             returnUnauthorized(res);
           } else {
-            const token = getToken({ _id: userId });
+            const accessToken = getAccessToken({ _id: userId });
             // If the refresh token exists, then create new one and replace it.
             const newRefreshToken = getRefreshToken({ _id: userId });
 
@@ -115,7 +115,7 @@ router.post(
             await user.save();
 
             res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
-            res.send({ success: true, token });
+            res.send({ success: true, accessToken });
           }
         } else {
           returnUnauthorized(res);

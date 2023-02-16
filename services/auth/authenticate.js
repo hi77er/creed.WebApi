@@ -13,7 +13,7 @@ exports.COOKIE_OPTIONS = {
   sameSite: "none",
 };
 
-exports.getToken = (user) => {
+exports.getAccessToken = (user) => {
   const accessToken = jwt
     .sign(user, process.env.AUTH_JWT_TOKEN_SECRET, {
       expiresIn: eval(process.env.AUTH_SESSION_EXPIRY_SECONDS),
