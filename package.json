@@ -11,7 +11,7 @@
     "start": "node index.js",
     "test": "jest",
     "server": "nodemon index.js",
-    "client": "npm --prefix ../client/ run start",
+    "client": "npm --prefix ../creed.Client/ run start",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "Kalin Krastev",

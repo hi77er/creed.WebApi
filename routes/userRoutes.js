@@ -34,7 +34,7 @@ router.get(
 
 router.get(
   '/current',
-  verifyUser,
+  // verifyUser,
   (req, res) => {
     res.send(req.user);
   }

@@ -6,7 +6,14 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const User = mongoose.model('users');
-const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
+const {
+  AUTH_ACCESS_COOKIE_KEY,
+  ACCESS_TOKEN_COOKIE_OPTIONS,
+  AUTH_REFRESH_COOKIE_KEY,
+  REFRESH_TOKEN_COOKIE_OPTIONS,
+  getAccessToken,
+  getRefreshToken
+} = require("../services/auth/authenticate");
 
 const returnUnauthorized = (res) => {
   res.statusCode = 401;
@@ -47,7 +54,8 @@ router.post("/signup", (req, res) => {
           ];
 
           await registeredUser.save();
-          res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+          res.cookie(AUTH_REFRESH_COOKIE_KEY, refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+          res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
           res.send({ success: true, accessToken });
         }
       });
@@ -57,7 +65,7 @@ router.post("/signup", (req, res) => {
 router.post(
   "/signin",
   passport.authenticate("local"),
-  async (req, res, next) => {
+  async (req, res) => {
     const accessToken = getAccessToken({ _id: req.user._id });
     const refreshToken = getRefreshToken({ _id: req.user._id });
 
@@ -72,7 +80,8 @@ router.post(
       }
     });
 
-    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+    res.cookie(AUTH_REFRESH_COOKIE_KEY, refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
     res.send({ success: true, accessToken });
   });
 
@@ -80,7 +89,7 @@ router.post(
   "/refresh",
   async (req, res, next) => {
     const { signedCookies = {} } = req;
-    const { refreshToken } = signedCookies;
+    const refreshToken = signedCookies[REFRESH_COOKIE_KEY];
 
     if (refreshToken) {
       try {
@@ -111,7 +120,8 @@ router.post(
 
             await user.save();
 
-            res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
+            res.cookie(AUTH_REFRESH_COOKIE_KEY, newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+            res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
             res.send({ success: true, accessToken });
           }
         } else {
@@ -129,7 +139,14 @@ router.get(
   '/signout',
   (req, res) => {
     req.logout();
-    res.send(req.user);
+    req.session = null;
+
+    res.clearCookie(process.env.AUTH_ACCESS_COOKIE_KEY, { httpOnly: true, signed: true, path: '/' });
+    res.clearCookie(process.env.AUTH_REFRESH_COOKIE_KEY, { httpOnly: true, signed: true, path: '/' });
+
+    res
+      .status(200)
+      .send({ success: true });
   }
 );
 

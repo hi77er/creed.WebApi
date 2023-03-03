@@ -46,7 +46,8 @@ passport.use(
             }
           }
         );
-
+        console.log('existingUser.id')
+        console.log(existingUser.id)
         done(null, existingUser);
       } else {
         await new User({

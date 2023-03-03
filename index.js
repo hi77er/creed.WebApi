@@ -1,11 +1,11 @@
+require('dotenv').config();
 const { default: mongoose } = require("mongoose");
 const express = require('express');
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const passport = require('passport');
-
-const cookieSession = require('cookie-session');
 
 // Configure mongo data model
 require('./models/User');
@@ -18,23 +18,30 @@ require("./services/auth/strategies/jwtStrategy");
 // Configuring Google OAuth Strategy for passport
 require('./services/auth/strategies/googleStrategy');
 
-// Configure mongodb connection 
+// Configure mongodb connection
 require('./services/mongodb');
 
 // Configure App
 const app = express();
+app.use(
+  cookieParser([
+    process.env.AUTH_ACCESS_TOKEN_SECRET,
+    process.env.AUTH_REFRESH_TOKEN_SECRET
+  ])
+); // process.env.AUTH_COOKIE_KEY
 app.use(bodyParser.json());
-app.use(cookieParser(process.env.AUTH_COOKIE_KEY));
+app.use(
+  cookieSession({
+    name: process.env.AUTH_SESSION_NAME,
+    keys: [process.env.AUTH_ACCESS_COOKIE_KEY],
+    maxAge: process.env.AUTH_ACCESS_TOKEN_EXPIRY_SECONDS,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
-// app.use(
-//   cookieSession({
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//     keys: [process.env.AUTH_COOKIE_KEY]
-//   })
-// );
-
-const whitelist = process.env.WHITELISTED_DOMAINS
-  ? process.env.WHITELISTED_DOMAINS.split(",")
+const whitelist = process.env.CORS_WHITELISTED_DOMAINS
+  ? process.env.CORS_WHITELISTED_DOMAINS.split(",")
   : []
 
 const corsOptions = {
@@ -49,9 +56,6 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-
-app.use(passport.initialize());
-// app.use(passport.session());
 
 // Configuring routs
 

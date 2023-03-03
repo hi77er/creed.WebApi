@@ -3,11 +3,18 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const router = express.Router();
 const User = mongoose.model('users');
-const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
+const {
+  AUTH_ACCESS_COOKIE_KEY,
+  ACCESS_TOKEN_COOKIE_OPTIONS,
+  AUTH_REFRESH_COOKIE_KEY,
+  REFRESH_TOKEN_COOKIE_OPTIONS,
+  getAccessToken,
+  getRefreshToken
+} = require("../services/auth/authenticate");
 
 router.get(
   '/',
-  passport.authorize(
+  passport.authenticate(
     'google',
     {
       accessType: 'offline',
@@ -39,8 +46,11 @@ router.get(
 
     await signedUser.save();
 
-    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
-    res.send({ success: true, accessToken });
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.cookie(AUTH_REFRESH_COOKIE_KEY, refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
+    res.redirect('http://localhost:3000/user');
   }
 );
 
