@@ -3,7 +3,6 @@ const { default: mongoose } = require("mongoose");
 const express = require('express');
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const passport = require('passport');
 
@@ -28,17 +27,30 @@ app.use(
     process.env.AUTH_ACCESS_TOKEN_SECRET,
     process.env.AUTH_REFRESH_TOKEN_SECRET
   ])
-); // process.env.AUTH_COOKIE_KEY
-app.use(bodyParser.json());
-app.use(
-  cookieSession({
-    name: process.env.AUTH_SESSION_NAME,
-    keys: [process.env.AUTH_ACCESS_COOKIE_KEY],
-    maxAge: process.env.AUTH_ACCESS_TOKEN_EXPIRY_SECONDS,
-  })
 );
+app.use(bodyParser.json());
+
+// INFO: Configure Http Cookie Session:
+// Don't forget to add the following environment variables:
+//  AUTH_SESSION_NAME="auth_session"
+//  AUTH_SESSION_EXPIRY_SECONDS = 60 * 15
+// const session = require('express-session');
+// app.use(
+//   session({
+//     secret: process.env.AUTH_ACCESS_COOKIE_KEY,
+//     name: process.env.AUTH_SESSION_NAME,
+//     resave: true,
+//     saveUninitialized: true,
+//     rolling: true,
+//     cookie: {
+//       httpOnly: true,
+//       maxAge: 300 * 1000 // process.env.AUTH_SESSION_EXPIRY_SECONDS,
+//     }
+//   })
+// );
+// app.use(passport.session());
+
 app.use(passport.initialize());
-app.use(passport.session());
 
 const whitelist = process.env.CORS_WHITELISTED_DOMAINS
   ? process.env.CORS_WHITELISTED_DOMAINS.split(",")

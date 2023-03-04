@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const router = express.Router();
 const User = mongoose.model('users');
+const router = express.Router();
 const { verifyUser } = require("../services/auth/authenticate");
 
 router.get(
@@ -14,8 +14,6 @@ router.get(
     User
       .find({})
       .then((users) => {
-        console.log('List users after deletion:');
-        console.log(users);
         res.send(users);
       });
   }
@@ -34,9 +32,10 @@ router.get(
 
 router.get(
   '/current',
-  // verifyUser,
-  (req, res) => {
-    res.send(req.user);
+  verifyUser,
+  async (req, res) => {
+    const user = await User.findOne({ _id: req.user._id });
+    res.send(user);
   }
 );
 
@@ -44,8 +43,6 @@ router.get(
   '/indexes',
   (req, res) => {
     User.listIndexes().then(x => {
-      console.log('Indexes: ');
-      console.log(x);
       res.send(x);
     });
   }

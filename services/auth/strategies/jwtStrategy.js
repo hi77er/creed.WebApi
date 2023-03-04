@@ -5,8 +5,24 @@ const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const User = mongoose.model('users');
 
+const getBearerFromAuthHeader = (req) => {
+  if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+    return req.headers.authorization.split(' ')[1];
+  }
+  return null;
+}
+
+const jwtExtractor = (req) => {
+  const { signedCookies = {} } = req;
+  const accessToken = signedCookies[process.env.AUTH_ACCESS_COOKIE_KEY] || getBearerFromAuthHeader(req);
+  return accessToken;
+}
+
+// INFO: The JWT Strategy checks both:
+//    - the Signed cookies for cookie AUTH_ACCESS_COOKIE_KEY
+//    - and the request body for 'accessToken' parameter
 const opts = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: jwtExtractor,
   secretOrKey: process.env.AUTH_ACCESS_TOKEN_SECRET
 };
 
@@ -15,18 +31,14 @@ const opts = {
 passport.use(
   new JwtStrategy(
     opts,
-    (jwt_payload, done) => {
-      // Check against the DB only if necessary.
-      // This can be avoided if you don't want to fetch user details in each request.
+    (decodedJwtPayload, done) => {
+      if (Date.now() > (decodedJwtPayload.exp * 1000))
+        done('Unauthorized', false);
+
       User
-        .findOne({ _id: jwt_payload._id })
+        .findOne({ _id: decodedJwtPayload._id })
         .then((user) => {
-          if (user) {
-            return done(null, user)
-          } else {
-            return done(null, false)
-            // or you could create a new account
-          }
+          return user ? done(null, user) : done(null, false)
         });
     })
 )

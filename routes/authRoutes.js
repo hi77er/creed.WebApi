@@ -1,5 +1,4 @@
 require('dotenv').config();
-const { signedCookie } = require("cookie-parser");
 const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
@@ -66,10 +65,10 @@ router.post(
   "/signin",
   passport.authenticate("local"),
   async (req, res) => {
+    const existingUser = await User.findOne({ email: req.body.email });
+
     const accessToken = getAccessToken({ _id: req.user._id });
     const refreshToken = getRefreshToken({ _id: req.user._id });
-
-    const existingUser = await User.findOne({ _id: req.user._id });
 
     await existingUser.update({
       $set: {
@@ -82,14 +81,19 @@ router.post(
 
     res.cookie(AUTH_REFRESH_COOKIE_KEY, refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
     res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
+    // INFO: Configure usage of Access and Refresh tokens:
+    // Response data: accessToken, refreshToken
     res.send({ success: true, accessToken });
   });
 
 router.post(
   "/refresh",
-  async (req, res, next) => {
+  async (req, res) => {
     const { signedCookies = {} } = req;
-    const refreshToken = signedCookies[REFRESH_COOKIE_KEY];
+    // INFO: An alternative to getting refresh token from the (refresh) session is
+    // passing it in the body of the refresh token request. Then we'll not need the session. 
+
+    const refreshToken = req.body.refreshToken || signedCookies[AUTH_REFRESH_COOKIE_KEY];
 
     if (refreshToken) {
       try {
@@ -106,8 +110,7 @@ router.post(
           if (tokenIndex === -1) {
             returnUnauthorized(res);
           } else {
-            const accessToken = getAccessToken({ _id: userId });
-            // If the refresh token exists, then create new one and replace it.
+            const newAccessToken = getAccessToken({ _id: userId });
             const newRefreshToken = getRefreshToken({ _id: userId });
 
             user.sessions = user
@@ -121,8 +124,10 @@ router.post(
             await user.save();
 
             res.cookie(AUTH_REFRESH_COOKIE_KEY, newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
-            res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
-            res.send({ success: true, accessToken });
+            res.cookie(AUTH_ACCESS_COOKIE_KEY, newAccessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
+            // INFO: Configure usage of Access and Refresh tokens:
+            // Response data: accessToken, refreshToken
+            res.send({ success: true });
           }
         } else {
           returnUnauthorized(res);
@@ -139,7 +144,6 @@ router.get(
   '/signout',
   (req, res) => {
     req.logout();
-    req.session = null;
 
     res.clearCookie(process.env.AUTH_ACCESS_COOKIE_KEY, { httpOnly: true, signed: true, path: '/' });
     res.clearCookie(process.env.AUTH_REFRESH_COOKIE_KEY, { httpOnly: true, signed: true, path: '/' });
