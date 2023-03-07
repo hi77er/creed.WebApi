@@ -2,7 +2,6 @@ require('dotenv').config();
 const passport = require("passport");
 const mongoose = require("mongoose");
 const JwtStrategy = require("passport-jwt").Strategy;
-const ExtractJwt = require("passport-jwt").ExtractJwt;
 const User = mongoose.model('users');
 
 const getBearerFromAuthHeader = (req) => {
@@ -32,8 +31,9 @@ passport.use(
   new JwtStrategy(
     opts,
     (decodedJwtPayload, done) => {
-      if (Date.now() > (decodedJwtPayload.exp * 1000))
-        done('Unauthorized', false);
+      if (Date.now() > (decodedJwtPayload.exp * 1000)) {
+        done('Unauthorized', false, { errorMessage: 'expired' });
+      }
 
       User
         .findOne({ _id: decodedJwtPayload._id })

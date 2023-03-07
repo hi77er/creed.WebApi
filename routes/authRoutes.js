@@ -94,7 +94,6 @@ router.post(
     // passing it in the body of the refresh token request. Then we'll not need the session. 
 
     const refreshToken = req.body.refreshToken || signedCookies[AUTH_REFRESH_COOKIE_KEY];
-
     if (refreshToken) {
       try {
         const payload = jwt.verify(refreshToken, process.env.AUTH_REFRESH_TOKEN_SECRET);

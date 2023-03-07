@@ -34,6 +34,8 @@ router.get(
   '/current',
   verifyUser,
   async (req, res) => {
+    if (req.authInfo && req.authInfo.errorMessage === 'expired')
+      res.status(401).send(req.authInfo);
     const user = await User.findOne({ _id: req.user._id });
     res.send(user);
   }

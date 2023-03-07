@@ -10,11 +10,16 @@ const passport = require('passport');
 require('./models/User');
 
 require("./services/auth/authenticate");
-// Configuring Local Auth Strategy for passport
+// INFO: Configuring Local Auth Strategy for passport
+// INFO: Used only for "/signin" endpoint - (email & pass in req.body)
 require("./services/auth/strategies/localStrategy");
-// Configuring JWT Auth Strategy for passport
+// INFO: Configuring JWT Auth Strategy for passport
+// INFO: Used for all other protected endpoints - (access/refresh tokens & http cookies)
 require("./services/auth/strategies/jwtStrategy");
-// Configuring Google OAuth Strategy for passport
+// INFO: Configuring OAuth Strategies for passport
+// INFO: Used in parallel with JWT strategy - (access/refresh tokens & http cookies)
+require('./services/auth/strategies/facebookStrategy');
+require('./services/auth/strategies/githubStrategy');
 require('./services/auth/strategies/googleStrategy');
 
 // Configure mongodb connection
@@ -73,10 +78,14 @@ app.use(cors(corsOptions))
 
 const authRouter = require("./routes/authRoutes");
 const dashboardRouter = require("./routes/dashboardRoutes");
+const facebookOAuthRouter = require("./routes/facebookOAuthRoutes");
 const googleOAuthRouter = require("./routes/googleOAuthRoutes");
+const githubOAuthRouter = require("./routes/githubOAuthRoutes");
 const userRouter = require("./routes/userRoutes");
 
 app.use("/auth", authRouter);
+app.use("/oauth/facebook", facebookOAuthRouter);
+app.use("/oauth/github", githubOAuthRouter);
 app.use("/oauth/google", googleOAuthRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/user", userRouter);

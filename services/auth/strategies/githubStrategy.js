@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require("mongoose");
 const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GitHubStrategy = require("passport-github2").Strategy;
 const User = mongoose.model('users');
 
 passport.serializeUser((user, done) => {
@@ -17,12 +17,11 @@ passport.deserializeUser((email, done) => {
 });
 
 passport.use(
-  new GoogleStrategy(
+  new GitHubStrategy(
     {
-      clientID: process.env.AUTH_GOOGLE_CLIENT_ID,
-      clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.AUTH_GOOGLE_CALLBACK,
-      proxy: true
+      clientID: process.env.AUTH_GITHUB_CLIENT_ID,
+      clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET,
+      callbackURL: process.env.AUTH_GITHUB_CALLBACK,
     },
     async (accessToken, refreshToken, profile, done) => {
       if (!profile || !profile.emails || !profile.emails[0] || !profile.emails[0].value)
@@ -35,16 +34,16 @@ passport.use(
           {
             $set: {
               sessions: [
-                { authStrategy: 'google', refreshToken: 'no token' },
-                ...existingUser.sessions.filter(x => x.authStrategy != 'google')
+                { authStrategy: 'github', refreshToken: 'no token' },
+                ...existingUser.sessions.filter(x => x.authStrategy != 'github')
               ],
               externalOAuth: [
                 {
-                  provider: 'google',
+                  provider: 'github',
                   email: profile.emails[0].value,
                   externalProfileId: profile.id
                 },
-                ...existingUser.externalOAuth.filter(x => x.provider != 'google')
+                ...existingUser.externalOAuth.filter(x => x.provider != 'github')
               ]
             }
           }
@@ -54,12 +53,11 @@ passport.use(
       } else {
         const savedUser = await new User({
           email: profile.emails[0].value,
-          firstName: profile.name?.givenName,
-          lastName: profile.name?.familyName,
+          username: profile.username,
           gender: profile.gender,
-          sessions: [{ authStrategy: 'google', refreshToken: 'no token' }],
+          sessions: [{ authStrategy: 'github', refreshToken: 'no token' }],
           photos: profile.photos,
-          externalOAuth: [{ provider: 'google', email: profile.emails[0].value, externalProfileId: profile.id }]
+          externalOAuth: [{ provider: 'github', email: profile.emails[0].value, externalProfileId: profile.id }]
         }).save();
 
         done(null, savedUser);
