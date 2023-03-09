@@ -1,4 +1,4 @@
-name: Creed.Server Auto Deployment
+name: Creed.WebApi Auto Deployment
 
 # When this action will be executed
 on:
