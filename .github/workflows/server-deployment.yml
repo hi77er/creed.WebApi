@@ -1,4 +1,4 @@
-name: Srvymkr.Server Auto Deployment
+name: Creed.Server Auto Deployment
 
 # When this action will be executed
 on:
@@ -43,7 +43,7 @@ jobs:
       - name: Log in to container registry
         uses: docker/login-action@v1
         with:
-          registry: srvymkrdevacr.azurecr.io
+          registry: creeddevacr.azurecr.io
           username: ${{ secrets.AZURE_SP_CLIENT_ID }}
           password: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
       
@@ -51,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: srvymkrdevacr.azurecr.io/srvymkr-server-dev-image:latest
+          tags: creeddevacr.azurecr.io/creed-server-dev-image:latest
           file: ./Dockerfile
           context: ./
 
@@ -70,7 +70,7 @@ jobs:
       - name: Log in to container registry
         uses: docker/login-action@v1
         with:
-          registry: srvymkrprodacr.azurecr.io
+          registry: creedprodacr.azurecr.io
           username: ${{ secrets.AZURE_SP_CLIENT_ID }}
           password: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
       
@@ -78,7 +78,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: srvymkrprodacr.azurecr.io/srvymkr-server-prod-image:latest
+          tags: creedprodacr.azurecr.io/creed-server-prod-image:latest
           file: ./Dockerfile
           context: ./
 
@@ -92,18 +92,18 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
+          creds: ${{ secrets.CREED_AZURE_SP_CREDENTIALS }}
 
       # az containerapp revision restart - is needed when new image has the same tag
       # (currently tag is always set to be "latest")
-      # az containerapp revision restart --revision "srvymkr-server-dev-ca--revision" --resource-group "srvymkr-training-rg"
+      # az containerapp revision restart --revision "creed-server-dev-ca--revision" --resource-group "creed-training-rg"
       - name: Deploy to containerapp
         uses: azure/CLI@v1
         with:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
-            az containerapp registry set -n srvymkr-server-dev-ca -g srvymkr-training-rg --server srvymkrdevacr.azurecr.io --username  ${{ secrets.AZURE_SP_CLIENT_ID }} --password ${{ secrets.AZURE_SP_CLIENT_SECRET }}
-            az containerapp update -n srvymkr-server-dev-ca -g srvymkr-training-rg --image srvymkrdevacr.azurecr.io/srvymkr-server-dev-image:latest
+            az containerapp registry set -n creed-server-dev-ca -g creed-training-rg --server creeddevacr.azurecr.io --username  ${{ secrets.AZURE_SP_CLIENT_ID }} --password ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+            az containerapp update -n creed-server-dev-ca -g creed-training-rg --image creeddevacr.azurecr.io/creed-server-dev-image:latest
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -115,15 +115,15 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.SRVYMKR_AZURE_SP_CREDENTIALS }}
+          creds: ${{ secrets.CREED_AZURE_SP_CREDENTIALS }}
 
       # az containerapp revision restart - is needed when new image has the same tag
       # (currently tag is always set to be "latest")
-      # az containerapp revision restart --revision "srvymkr-server-prod-ca--revision" --resource-group "srvymkr-training-rg"
+      # az containerapp revision restart --revision "creed-server-prod-ca--revision" --resource-group "creed-training-rg"
       - name: Deploy to containerapp
         uses: azure/CLI@v1
         with:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
-            az containerapp registry set -n srvymkr-server-prod-ca -g srvymkr-training-rg --server srvymkrprodacr.azurecr.io --username  ${{ secrets.AZURE_SP_CLIENT_ID }} --password ${{ secrets.AZURE_SP_CLIENT_SECRET }}
-            az containerapp update -n srvymkr-server-prod-ca -g srvymkr-training-rg --image srvymkrprodacr.azurecr.io/srvymkr-server-prod-image:latest
+            az containerapp registry set -n creed-server-prod-ca -g creed-training-rg --server creedprodacr.azurecr.io --username  ${{ secrets.AZURE_SP_CLIENT_ID }} --password ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+            az containerapp update -n creed-server-prod-ca -g creed-training-rg --image creedprodacr.azurecr.io/creed-server-prod-image:latest
