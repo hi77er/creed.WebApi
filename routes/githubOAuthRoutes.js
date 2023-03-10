@@ -15,12 +15,8 @@ const {
 router.get(
   '/',
   passport.authenticate(
-    'google',
-    {
-      accessType: 'offline',
-      prompt: 'consent',
-      scope: ['profile', 'email']
-    }
+    'github',
+    { scope: ['user:email'] }
   )
 );
 
@@ -33,15 +29,15 @@ router.get(
 // passport.authenticate will set 'req.user'
 router.get(
   '/callback',
-  passport.authenticate('google'),
+  passport.authenticate('github'),
   async (req, res) => {
     const signedUser = await User.findOne({ _id: req.user._id });
     const accessToken = getAccessToken({ _id: signedUser._id });
     const refreshToken = getRefreshToken({ _id: signedUser._id });
 
     signedUser.sessions = [
-      { authStrategy: 'google', refreshToken },
-      ...signedUser.sessions.filter(x => x.authStrategy != 'google')
+      { authStrategy: 'github', refreshToken },
+      ...signedUser.sessions.filter(x => x.authStrategy != 'github')
     ];
 
     await signedUser.save();

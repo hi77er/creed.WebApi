@@ -1,12 +1,18 @@
 require('dotenv').config();
-const { signedCookie } = require("cookie-parser");
 const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const User = mongoose.model('users');
-const { getAccessToken, COOKIE_OPTIONS, getRefreshToken } = require("../services/auth/authenticate");
+const {
+  AUTH_ACCESS_COOKIE_KEY,
+  ACCESS_TOKEN_COOKIE_OPTIONS,
+  AUTH_REFRESH_COOKIE_KEY,
+  REFRESH_TOKEN_COOKIE_OPTIONS,
+  getAccessToken,
+  getRefreshToken
+} = require("../services/auth/authenticate");
 
 const returnUnauthorized = (res) => {
   res.statusCode = 401;
@@ -47,7 +53,8 @@ router.post("/signup", (req, res) => {
           ];
 
           await registeredUser.save();
-          res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+          res.cookie(AUTH_REFRESH_COOKIE_KEY, refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+          res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
           res.send({ success: true, accessToken });
         }
       });
@@ -57,11 +64,11 @@ router.post("/signup", (req, res) => {
 router.post(
   "/signin",
   passport.authenticate("local"),
-  async (req, res, next) => {
+  async (req, res) => {
+    const existingUser = await User.findOne({ email: req.body.email });
+
     const accessToken = getAccessToken({ _id: req.user._id });
     const refreshToken = getRefreshToken({ _id: req.user._id });
-
-    const existingUser = await User.findOne({ _id: req.user._id });
 
     await existingUser.update({
       $set: {
@@ -72,16 +79,21 @@ router.post(
       }
     });
 
-    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+    res.cookie(AUTH_REFRESH_COOKIE_KEY, refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie(AUTH_ACCESS_COOKIE_KEY, accessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
+    // INFO: Configure usage of Access and Refresh tokens:
+    // Response data: accessToken, refreshToken
     res.send({ success: true, accessToken });
   });
 
 router.post(
   "/refresh",
-  async (req, res, next) => {
+  async (req, res) => {
     const { signedCookies = {} } = req;
-    const { refreshToken } = signedCookies;
+    // INFO: An alternative to getting refresh token from the (refresh) session is
+    // passing it in the body of the refresh token request. Then we'll not need the session. 
 
+    const refreshToken = req.body.refreshToken || signedCookies[AUTH_REFRESH_COOKIE_KEY];
     if (refreshToken) {
       try {
         const payload = jwt.verify(refreshToken, process.env.AUTH_REFRESH_TOKEN_SECRET);
@@ -97,8 +109,7 @@ router.post(
           if (tokenIndex === -1) {
             returnUnauthorized(res);
           } else {
-            const accessToken = getAccessToken({ _id: userId });
-            // If the refresh token exists, then create new one and replace it.
+            const newAccessToken = getAccessToken({ _id: userId });
             const newRefreshToken = getRefreshToken({ _id: userId });
 
             user.sessions = user
@@ -111,8 +122,11 @@ router.post(
 
             await user.save();
 
-            res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
-            res.send({ success: true, accessToken });
+            res.cookie(AUTH_REFRESH_COOKIE_KEY, newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+            res.cookie(AUTH_ACCESS_COOKIE_KEY, newAccessToken, ACCESS_TOKEN_COOKIE_OPTIONS);
+            // INFO: Configure usage of Access and Refresh tokens:
+            // Response data: accessToken, refreshToken
+            res.send({ success: true });
           }
         } else {
           returnUnauthorized(res);
@@ -129,7 +143,13 @@ router.get(
   '/signout',
   (req, res) => {
     req.logout();
-    res.send(req.user);
+
+    res.clearCookie(process.env.AUTH_ACCESS_COOKIE_KEY, { httpOnly: true, signed: true, path: '/' });
+    res.clearCookie(process.env.AUTH_REFRESH_COOKIE_KEY, { httpOnly: true, signed: true, path: '/' });
+
+    res
+      .status(200)
+      .send({ success: true });
   }
 );
 

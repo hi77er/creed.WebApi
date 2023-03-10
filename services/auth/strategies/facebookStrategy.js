@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require("mongoose");
 const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const User = mongoose.model('users');
 
 passport.serializeUser((user, done) => {
@@ -17,12 +17,13 @@ passport.deserializeUser((email, done) => {
 });
 
 passport.use(
-  new GoogleStrategy(
+  new FacebookStrategy(
     {
-      clientID: process.env.AUTH_GOOGLE_CLIENT_ID,
-      clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.AUTH_GOOGLE_CALLBACK,
-      proxy: true
+      clientID: process.env.AUTH_FACEBOOK_CLIENT_ID,
+      clientSecret: process.env.AUTH_FACEBOOK_CLIENT_SECRET,
+      callbackURL: process.env.AUTH_FACEBOOK_CALLBACK,
+      profileFields: ["email", "name"],
+      enableProof: true
     },
     async (accessToken, refreshToken, profile, done) => {
       if (!profile || !profile.emails || !profile.emails[0] || !profile.emails[0].value)
@@ -35,16 +36,16 @@ passport.use(
           {
             $set: {
               sessions: [
-                { authStrategy: 'google', refreshToken: 'no token' },
-                ...existingUser.sessions.filter(x => x.authStrategy != 'google')
+                { authStrategy: 'facebook', refreshToken: 'no token' },
+                ...existingUser.sessions.filter(x => x.authStrategy != 'facebook')
               ],
               externalOAuth: [
                 {
-                  provider: 'google',
+                  provider: 'facebook',
                   email: profile.emails[0].value,
-                  externalProfileId: profile.id
+                  externalProfileId: profile.id,
                 },
-                ...existingUser.externalOAuth.filter(x => x.provider != 'google')
+                ...existingUser.externalOAuth.filter(x => x.provider != 'facebook')
               ]
             }
           }
@@ -56,10 +57,11 @@ passport.use(
           email: profile.emails[0].value,
           firstName: profile.name?.givenName,
           lastName: profile.name?.familyName,
+          username: profile.username,
           gender: profile.gender,
-          sessions: [{ authStrategy: 'google', refreshToken: 'no token' }],
+          sessions: [{ authStrategy: 'facebook', refreshToken: 'no token' }],
           photos: profile.photos,
-          externalOAuth: [{ provider: 'google', email: profile.emails[0].value, externalProfileId: profile.id }]
+          externalOAuth: [{ provider: 'facebook', email: profile.emails[0].value, externalProfileId: profile.id }]
         }).save();
 
         done(null, savedUser);

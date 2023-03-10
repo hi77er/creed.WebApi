@@ -15,7 +15,7 @@ const {
 router.get(
   '/',
   passport.authenticate(
-    'google',
+    'facebook',
     {
       accessType: 'offline',
       prompt: 'consent',
@@ -33,15 +33,15 @@ router.get(
 // passport.authenticate will set 'req.user'
 router.get(
   '/callback',
-  passport.authenticate('google'),
+  passport.authenticate('facebook'),
   async (req, res) => {
     const signedUser = await User.findOne({ _id: req.user._id });
     const accessToken = getAccessToken({ _id: signedUser._id });
     const refreshToken = getRefreshToken({ _id: signedUser._id });
 
     signedUser.sessions = [
-      { authStrategy: 'google', refreshToken },
-      ...signedUser.sessions.filter(x => x.authStrategy != 'google')
+      { authStrategy: 'facebook', refreshToken },
+      ...signedUser.sessions.filter(x => x.authStrategy != 'facebook')
     ];
 
     await signedUser.save();
