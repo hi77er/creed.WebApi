@@ -10,7 +10,6 @@ on:
     paths:
       - '**'
       - '.github/workflows/server-deployment.yml'
-
   # Allow mannually trigger
   workflow_dispatch:
 
