@@ -87,7 +87,7 @@ app.use("/auth", authRouter);
 app.use("/oauth/facebook", facebookOAuthRouter);
 app.use("/oauth/github", githubOAuthRouter);
 app.use("/oauth/google", googleOAuthRouter);
-app.use("/api/dashboard", dashboardRouter);
+app.use("/", dashboardRouter);
 app.use("/api/user", userRouter);
 
 const PORT = process.env.PORT || 80;
