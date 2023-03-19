@@ -2,14 +2,16 @@
   "name": "server",
   "version": "1.0.0",
   "description": "This is a POC application that serves for training purposes.",
+  "type": "module",
   "main": "index.js",
   "engines": {
     "node": "16.16.0",
     "npm": "8.11.0"
   },
   "scripts": {
+    "build": "tsc -b -v",
     "start": "node index.js",
-    "test": "jest",
+    "test": "jest --no-cache",
     "server": "nodemon index.js",
     "client": "npm --prefix ../creed.Client/ run start",
     "dev": "concurrently \"npm run server\" \"npm run client\""
@@ -34,8 +36,28 @@
     "passport-local-mongoose": "^7.1.2"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.20.2",
+    "@types/body-parser": "^1.19.2",
+    "@types/cookie-parser": "^1.4.3",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/express-session": "^1.17.6",
+    "@types/jest": "^29.5.0",
+    "@types/jsonwebtoken": "^9.0.1",
+    "@types/nodemon": "^1.19.2",
+    "@types/passport": "^1.0.12",
+    "@types/passport-facebook": "^2.1.11",
+    "@types/passport-github2": "^1.2.5",
+    "@types/passport-google-oauth20": "^2.0.11",
+    "@types/passport-jwt": "^3.0.8",
+    "@types/passport-local": "^1.0.35",
+    "@types/passport-local-mongoose": "^6.1.1",
+    "babel-jest": "^29.5.0",
     "concurrently": "^7.6.0",
     "jest": "^29.4.1",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1"
   }
 }
