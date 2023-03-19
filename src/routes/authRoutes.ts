@@ -1,7 +1,6 @@
 import { Router } from "express";
-import mongoose from "mongoose";
+import { body, validationResult } from 'express-validator';
 import User from "../models/User";
-import Session from "../models/Session";
 import passport from "passport";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {
@@ -22,22 +21,22 @@ const returnUnauthorized = (res) => {
   res.send("Unauthorized");
 };
 
-router.post("/signup", (req, res) => {
+router.post("/signup", [
+  body('email').isEmail().withMessage({ name: "MissingEmailError", message: "The 'Email' is required." }),
+  body('password').isStrongPassword().withMessage({ name: "MissingPasswordError", message: "The 'Password' is required." }),
+  body('firstName').isEmpty().withMessage({ name: "MissingFirstNameError", message: "The 'First name' is required." }),
+  body('lastName').isEmpty().withMessage({ name: "MissingLastNameError", message: "The 'Last name' is required." })
+], (req, res) => {
+  const errors = validationResult(req);
   // Verify that first name is not empty
-  if (!req.body.email)
-    res.status(400).send({ name: "MissingEmailError", message: "The 'Email' is required." });
-  else if (!req.body.password)
-    res.status(400).send({ name: "MissingPasswordError", message: "The 'Password' is required." });
-  else if (!req.body.firstName)
-    res.status(400).send({ name: "MissingFirstNameError", message: "The 'First name' is required." });
-  else if (!req.body.lastName)
-    res.status(400).send({ name: "MissingLastNameError", message: "The 'Last name' is required." });
+  if (!errors.isEmpty())
+    res.status(400).send({ errors: errors.array() });
   else {
     User
       .findOne({ email: req.body.email })
       .then(async (existingUser) => {
         if (existingUser)
-          res.status(400).send({ name: "ExistingUserError", message: "User with such 'Email' already exists." });
+          res.status(400).send([{ name: "ExistingUserError", message: "User with such 'Email' already exists." }]);
         else {
           const newUser = new User({
             email: req.body.email,
@@ -67,7 +66,7 @@ router.post("/signup", (req, res) => {
             res.status(200).send({ success: true, accessToken });
           }
 
-          res.status(500).send({ success: false, message: "Something went wrong!" });
+          res.status(500).send([{ success: false, message: "Something went wrong!" }]);
         }
       });
   }
