@@ -5,13 +5,7 @@ import app from "./app";
 import "./services/mongodb";
 
 // Configure mongo data model
-import "./models/AnswerEvaluation";
-import "./models/Interview";
-import "./models/Question";
-import "./models/Subtopic";
-import "./models/Topic";
-import "./models/User";
-import "./services/auth/authenticate";
+// import "./services/auth/authenticate";
 // INFO: Configuring Local Auth Strategy for passport
 // INFO: Used only for "/signin" endpoint - (email & pass in req.body)
 import "./services/auth/strategies/localStrategy";

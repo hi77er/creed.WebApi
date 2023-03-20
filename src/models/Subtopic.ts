@@ -1,15 +1,18 @@
-import { Document, model, Schema } from "mongoose";
+import mongoose from "mongoose";
+import { ITopic, topicSchema } from "./topic";
 
-interface ISubtopic extends Document {
-  topicId: Schema.Types.ObjectId,
+export interface ISubtopic extends mongoose.Document {
+  topic: ITopic,
   name: String,
   orderInTopic: Number,
 };
 
-const subtopicSchema = new Schema<ISubtopic>({
-  topicId: { type: Schema.Types.ObjectId, required: true },
+export const subtopicSchema = new mongoose.Schema<ISubtopic>({
+  topic: topicSchema,
   name: { type: String, required: true },
   orderInTopic: { type: Number, required: true },
 });
 
-export const Subtopic = model<ISubtopic>("subtopics", subtopicSchema);
+const Subtopic = mongoose.model<ISubtopic>("subtopics", subtopicSchema);
+
+export default Subtopic;

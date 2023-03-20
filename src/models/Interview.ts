@@ -1,20 +1,27 @@
-import { Document, model, Schema } from "mongoose";
-import { InterviewStrategy } from "./enums/InterviewStrategy";
+import mongoose from "mongoose";
+import { InterviewStrategy } from "./enums/interviewStrategy";
 
-interface IInterview extends Document {
-  candidateId: Schema.Types.ObjectId,
+export interface IInterview {
+  candidateId: mongoose.Schema.Types.ObjectId,
   strategy: InterviewStrategy,
   orderdurationMinutes: Number,
-  topicIds: Schema.Types.ObjectId[],
-  questionsAskedIds: Schema.Types.ObjectId[],
+  topicIds: mongoose.Schema.Types.ObjectId[],
+  questionsAskedIds: mongoose.Schema.Types.ObjectId[],
 }
 
-const interviewSchema = new Schema<IInterview>({
-  candidateId: { type: Schema.Types.ObjectId, ref: 'users', required: true },
-  strategy: { type: InterviewStrategy, required: true },
+export interface IInterviewDocument extends IInterview, mongoose.Document { }
+export interface IInterviewModel extends mongoose.Model<IInterviewDocument> {
+  buildUser(args: IInterview): IInterviewDocument;
+}
+
+const interviewSchema = new mongoose.Schema<IInterview>({
+  candidateId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true },
+  strategy: { type: Number, enum: [1, 2], required: false },
   orderdurationMinutes: { type: Number, required: true },
-  topicIds: [{ type: Schema.Types.ObjectId, required: true }],
-  questionsAskedIds: [{ type: Schema.Types.ObjectId, required: false }],
+  topicIds: [{ type: mongoose.Schema.Types.ObjectId, required: true }],
+  questionsAskedIds: [{ type: mongoose.Schema.Types.ObjectId, required: false }],
 });
 
-export const Interview = model<IInterview>("interviews", interviewSchema);
+const Interview = mongoose.model<IInterview>("interviews", interviewSchema);
+
+export default Interview;

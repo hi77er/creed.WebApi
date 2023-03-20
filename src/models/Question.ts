@@ -1,18 +1,21 @@
-import { Document, model, Schema } from "mongoose";
-import { ProficiencyLevel } from "./enums/ProficiencyLevel";
+import mongoose, { Document, Schema } from "mongoose";
+import { ProficiencyLevel } from "./enums/proficiencyLevel";
+import { ISubtopic, subtopicSchema } from "./subtopic";
 
-interface IQuestion extends Document {
-  subtopicId: Schema.Types.ObjectId,
+export interface IQuestion extends Document {
+  subtopic: ISubtopic,
   proficiencyLevels: ProficiencyLevel[],
   title: String,
   text: String
 }
 
-const questionSchema = new Schema<IQuestion>({
-  subtopicId: { type: Schema.Types.ObjectId, ref: 'subtopic', required: true },
-  proficiencyLevels: [{ type: ProficiencyLevel, required: true }],
+export const questionSchema = new Schema<IQuestion>({
   title: { type: String, required: true },
   text: { type: String, required: true },
+  proficiencyLevels: [{ type: Number, enum: [1, 2, 3, 4, 5], required: true }],
+  subtopic: subtopicSchema,
 });
 
-export const Question = model<IQuestion>("questions", questionSchema);
+const Question = mongoose.model<IQuestion>("questions", questionSchema);
+
+export default Question;

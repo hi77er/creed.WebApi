@@ -1,14 +1,12 @@
 import { model } from "mongoose";
 import { serializeUser, deserializeUser, use } from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
-import { IUser } from "../../../models/User";
+import { User } from "../../../models";
 import {
   AUTH_GITHUB_CLIENT_ID,
   AUTH_GITHUB_CLIENT_SECRET,
   AUTH_GITHUB_CALLBACK,
 } from "../../../keys";
-
-const User = model<IUser>('User');
 
 serializeUser((user, done) => {
   done(null, user._id);
@@ -41,7 +39,7 @@ use(
             $set: {
               sessions: [
                 { authStrategy: 'github', refreshToken: 'no token' },
-                ...existingUser.sessions.filter(x => x.authStrategy != 'github')
+                ...existingUser?.sessions?.filter(x => x.authStrategy != 'github') || []
               ],
               externalOAuth: [
                 {
@@ -49,7 +47,7 @@ use(
                   email: profile.emails[0].value,
                   externalProfileId: profile.id
                 },
-                ...existingUser.externalOAuth.filter(x => x.provider != 'github')
+                ...existingUser?.externalOAuths?.filter(x => x.provider != 'github') || []
               ]
             }
           }

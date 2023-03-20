@@ -1,13 +1,15 @@
-import { Document, model, Schema } from "mongoose";
+import mongoose from "mongoose";
 
-export interface ITopic extends Document {
+export interface ITopic extends mongoose.Document {
   name: String,
   order: Number
 }
 
-let TopicSchema = new Schema<ITopic>({
+export let topicSchema = new mongoose.Schema<ITopic>({
   name: { type: String, required: true },
   order: { type: Number, required: true }
 });
 
-export const Topic = model<ITopic>("topics", TopicSchema);
+const Topic = mongoose.model<ITopic>("topics", topicSchema);
+
+export default Topic;

@@ -1,26 +1,24 @@
 import { model } from "mongoose";
 import { use } from "passport";
 import { Strategy as JwtStrategy } from "passport-jwt";
-import { IUser } from "../../../models/User";
+import { User } from "../../../models";
 import {
   AUTH_ACCESS_COOKIE_KEY,
   AUTH_ACCESS_TOKEN_SECRET,
 } from "../../../keys";
-
-const User = model<IUser>('User');
 
 const getBearerFromAuthHeader = (req) => {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
     return req.headers.authorization.split(' ')[1];
   }
   return null;
-}
+};
 
 const jwtExtractor = (req) => {
   const { signedCookies = {} } = req;
   const accessToken = signedCookies[AUTH_ACCESS_COOKIE_KEY || ''] || getBearerFromAuthHeader(req);
   return accessToken;
-}
+};
 
 // INFO: The JWT Strategy checks both:
 //    - the Signed cookies for cookie AUTH_ACCESS_COOKIE_KEY
@@ -46,4 +44,4 @@ use(
           return user ? done(null, user) : done(null, false)
         });
     })
-)
+);

@@ -1,7 +1,7 @@
 import { Document, model, PassportLocalModel, Schema } from "mongoose";
 import passportLocalMongoose from "passport-local-mongoose";
-import { Gender } from "./enums/Gender";
-import { ISessionDocument, SessionSchema } from "./Session";
+import { Gender } from "./enums/gender";
+import { ISessionDocument, SessionSchema } from "./session";
 
 export interface IExternalOAuth extends Document {
   provider: string,
@@ -60,6 +60,14 @@ const UserSchema = new Schema<IUserDocument>({
 
 UserSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 const User = model<IUserDocument, IUserModel>("users", UserSchema);
+
+UserSchema.pre('save', async function preSaveFunction(this: IUserDocument, next) {
+  const existing = await User.findOne({ email: this.email });
+  if (existing)
+    throw new Error('A user with such eamil already exists.');
+  next();
+});
+
 UserSchema.statics.buildUser = (args: IUser) => new User(args);
 
 export default User;

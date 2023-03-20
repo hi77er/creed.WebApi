@@ -1,7 +1,7 @@
 import { serializeUser, use } from "passport";
 import { model } from "mongoose";
 import { Strategy as LocalStrategy } from "passport-local";
-import { IUser } from "../../../models/User";
+import { IUser } from "../../../models/user";
 
 const User = model<IUser>('User');
 

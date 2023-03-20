@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { model } from "mongoose";
 import passport from "passport";
-import User from "../models/User";
-import Session from "../models/Session";
+import User from "../models/user";
+import Session from "../models/session";
 import {
   AUTH_ACCESS_COOKIE_KEY,
   AUTH_REFRESH_COOKIE_KEY,

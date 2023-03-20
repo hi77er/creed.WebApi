@@ -1,5 +1,5 @@
 import { model } from "mongoose";
-import { IUser } from "../../../models/User";
+import { User } from "../../../models";
 import { serializeUser, deserializeUser, use } from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import {
@@ -7,8 +7,6 @@ import {
   AUTH_FACEBOOK_CLIENT_SECRET,
   AUTH_FACEBOOK_CALLBACK
 } from '../../../keys';
-
-const User = model<IUser>('User');
 
 serializeUser((user, done) => {
   done(null, user._id);
@@ -43,7 +41,7 @@ use(
               $set: {
                 sessions: [
                   { authStrategy: 'facebook', refreshToken: 'no token' },
-                  ...existingUser.sessions.filter(x => x.authStrategy != 'facebook')
+                  ...existingUser?.sessions?.filter(x => x.authStrategy != 'facebook') || []
                 ],
                 externalOAuth: [
                   {
@@ -51,7 +49,7 @@ use(
                     email: profile.emails[0].value,
                     externalProfileId: profile.id,
                   },
-                  ...existingUser.externalOAuth.filter(x => x.provider != 'facebook')
+                  ...existingUser?.externalOAuths?.filter(x => x.provider != 'facebook') || []
                 ]
               }
             }

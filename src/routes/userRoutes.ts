@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { model } from "mongoose";
-import User from "../models/User";
+import User from "../models/user";
 import { verifyUser } from "../services/auth/authenticate";
 
 const router = Router();

@@ -1,14 +1,16 @@
 import request from "supertest";
 import app from "../../app";
-import { it } from '@jest/globals';
+import { expect, it } from '@jest/globals';
+import { User } from "../../models";
 
 // INFO: Valid values
 let email = 'qwert2023@gmail.com';
 let password = '!234Qwer';
 let firstName = 'John';
 let lastName = 'Steinback';
+let user = { email, password, firstName, lastName };
 
-it('should return 400 if email is missing, empty, or invalid', async () => {
+it('should return 400 if email is missing, or empty', async () => {
   await request(app)
     .post('/auth/signup')
     .send({ password, firstName, lastName })
@@ -18,7 +20,9 @@ it('should return 400 if email is missing, empty, or invalid', async () => {
     .post('/auth/signup')
     .send({ email: '', password, firstName, lastName })
     .expect(400);
+});
 
+it('should return 400 if email is invalid', async () => {
   await request(app)
     .post('/auth/signup')
     .send({ email: 'wrong@mail@1', password, firstName, lastName })
@@ -97,4 +101,22 @@ it('should return 400 if first or last name are missing, or empty', async () => 
     .post('/auth/signup')
     .send({ email, password, firstName, lastName: '' })
     .expect(400);
+});
+
+it('should save the signed up user to the database if the input data is valid', async () => {
+  const response = await request(app).post('/auth/signup').send(user).expect(201);
+  expect(response.body.success).toBe(true);
+
+  const registeredUser = await User.findOne({ email: user.email });
+
+  expect(registeredUser).toBeDefined();
+  expect(registeredUser).not.toBeNull();
+  expect(registeredUser!.email).toEqual(user.email);
+  expect(registeredUser!.firstName).toEqual(user.firstName);
+  expect(registeredUser!.lastName).toEqual(user.lastName);
+});
+
+it('does not allow saving a user with a duplicate email', async () => {
+  await request(app).post('/auth/signup').send(user).expect(201);
+  await request(app).post('/auth/signup').send(user).expect(400);
 });

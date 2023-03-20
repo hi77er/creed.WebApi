@@ -6,17 +6,17 @@ declare namespace Express {
   export interface User {
     _id: string,
     email: string,
-    emailVerified: Boolean,
+    emailVerified: boolean,
     firstName: string,
     lastName: string,
-    username: string,
-    gender: string,
-    photos: string[],
-    salt: string,
-    hash: string,
-    roles: IRole[],
-    sessions: ISession[],
-    externalOAuth: IExternamOAuth[]
+    username?: string,
+    gender?: Gender,
+    photos?: string[],
+    salt?: string,
+    hash?: string,
+    roles?: IRole[],
+    sessions?: ISessionDocument[],
+    externalOAuths?: IExternalOAuth[],
   }
 
   export interface AuthInfo {

@@ -1,14 +1,12 @@
 import { model } from "mongoose";
 import { serializeUser, deserializeUser, use } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { IUser } from "../../../models/User";
+import { User } from "../../../models";
 import {
   AUTH_GOOGLE_CLIENT_ID,
   AUTH_GOOGLE_CLIENT_SECRET,
   AUTH_GOOGLE_CALLBACK,
 } from "../../../keys";
-
-const User = model<IUser>('User');
 
 serializeUser((user, done) => {
   done(null, user._id);
@@ -42,7 +40,7 @@ use(
               $set: {
                 sessions: [
                   { authStrategy: 'google', refreshToken: 'no token' },
-                  ...existingUser.sessions.filter(x => x.authStrategy != 'google')
+                  ...existingUser?.sessions?.filter(x => x.authStrategy != 'google') || []
                 ],
                 externalOAuth: [
                   {
@@ -50,7 +48,7 @@ use(
                     email: profile.emails[0].value,
                     externalProfileId: profile.id
                   },
-                  ...existingUser.externalOAuth.filter(x => x.provider != 'google')
+                  ...existingUser?.externalOAuths?.filter(x => x.provider != 'google') || []
                 ]
               }
             }

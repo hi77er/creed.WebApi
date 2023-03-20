@@ -2,8 +2,8 @@ import { Router } from "express";
 import { model } from "mongoose";
 import passport from "passport";
 import { AuthenticateOptionsGoogle } from "passport-google-oauth20";
-import User from "../models/User";
-import Session from "../models/User";
+import User from "../models/user";
+import Session from "../models/user";
 import {
   AUTH_ACCESS_COOKIE_KEY,
   AUTH_REFRESH_COOKIE_KEY,

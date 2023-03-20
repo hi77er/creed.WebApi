@@ -1,14 +1,21 @@
-import { Document, model, Schema } from "mongoose";
-import { AnswerEvaluationResult } from "./enums/AnswerEvaluationResult";
+import mongoose from "mongoose";
+import { AnswerEvaluationResult } from "./enums/answerEvaluationResult";
 
-interface IAnswerEvaluation extends Document {
-  questionId: Schema.Types.ObjectId,
+export interface IAnswerEvaluation {
+  questionId: mongoose.Schema.Types.ObjectId,
   answerEvaluationResult: AnswerEvaluationResult,
 }
 
-const answerEvaluationSchema = new Schema<IAnswerEvaluation>({
-  questionId: { type: Schema.Types.ObjectId, required: true },
-  answerEvaluationResult: { type: AnswerEvaluationResult, required: true },
+export interface IAnswerEvaluationDocument extends IAnswerEvaluation, mongoose.Document { }
+export interface IAnswerEvaluationModel extends mongoose.Model<IAnswerEvaluationDocument> {
+  buildUser(args: IAnswerEvaluation): IAnswerEvaluationDocument;
+}
+
+const answerEvaluationSchema = new mongoose.Schema<IAnswerEvaluationDocument>({
+  questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  answerEvaluationResult: { type: Number, enum: [1, 2, 3, 4], required: false },
 });
 
-export const AnswerEvaluation = model<IAnswerEvaluation>("AnswerEvaluation", answerEvaluationSchema);
+const AnswerEvaluation = mongoose
+  .model<IAnswerEvaluationDocument, IAnswerEvaluationModel>("answerevaluations", answerEvaluationSchema);
+export default AnswerEvaluation;
