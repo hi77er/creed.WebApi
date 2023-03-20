@@ -1,5 +1,13 @@
 import { expect, it } from '@jest/globals';
-import { IUser, User } from "../../models";
+import {
+  BaseCustomError,
+  DuplicatedUserError,
+  USER_ALREADY_EXISTS_ERR_MSG
+} from '../../errors';
+import {
+  IUser,
+  User
+} from "../../models";
 
 it('should not save a user with a duplicate email', async () => {
   const user: IUser = {
@@ -15,12 +23,18 @@ it('should not save a user with a duplicate email', async () => {
   expect(created.firstName).toEqual(user.firstName);
   expect(created.lastName).toEqual(user.lastName);
 
-  let error;
+  let error: DuplicatedUserError | undefined;
+
   try {
     await User.create(user);
   } catch (err) {
     error = err;
   }
 
+  const serializedErrorOutput = error ? error.serializeErrorOutput() : undefined;
+
   expect(error).toBeDefined();
+  expect(error).toBeInstanceOf(BaseCustomError);
+  expect(serializedErrorOutput).toBeDefined();
+  expect(serializedErrorOutput?.errors[0].message).toEqual(USER_ALREADY_EXISTS_ERR_MSG);
 });

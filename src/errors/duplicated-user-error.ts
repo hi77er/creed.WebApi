@@ -1,26 +1,23 @@
 import { ValidationError } from "express-validator";
 import {
   BaseCustomError,
-  INVALID_INPUT_ERR_MSG
+  USER_ALREADY_EXISTS_ERR_MSG
 } from ".";
-import {
-  SerializedErrorField,
-  SerializeErrorOutput
-} from "./types/serialized-error-output";
+import { SerializedErrorField, SerializeErrorOutput } from "./types/serialized-error-output";
 
-export type InvalidInputConstructorErrorsParam = ValidationError[];
+export type DuplicatedUserConstructorErrorsParam = ValidationError[];
 
-export class InvalidInputError extends BaseCustomError {
-  private errorMessage = INVALID_INPUT_ERR_MSG;
+export class DuplicatedUserError extends BaseCustomError {
+  private errorMessage = USER_ALREADY_EXISTS_ERR_MSG;
   protected statusCode = 422;
   protected errors: ValidationError[] | undefined;
 
-  constructor(errors?: InvalidInputConstructorErrorsParam) {
-    super(INVALID_INPUT_ERR_MSG);
+  constructor(errors?: DuplicatedUserConstructorErrorsParam) {
+    super(USER_ALREADY_EXISTS_ERR_MSG);
 
     this.errors = errors;
 
-    Object.setPrototypeOf(this, InvalidInputError.prototype);
+    Object.setPrototypeOf(this, DuplicatedUserError.prototype);
   }
 
   getStatusCode() { return this.statusCode; };

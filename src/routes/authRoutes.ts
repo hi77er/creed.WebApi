@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body, Result, ValidationError, validationResult } from 'express-validator';
-import User from "../models/user";
+import User, { IUserDocument } from "../models/user";
 import passport from "passport";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {
@@ -14,6 +14,13 @@ import {
   getRefreshToken
 } from "../services/auth/authenticate";
 import { InvalidInputError } from "../errors";
+import { DuplicatedUserError } from "../errors/duplicated-user-error";
+import {
+  REQUIRED_EMAIL_ERR_MSG,
+  REQUIRED_PASSWORD_ERR_MSG,
+  REQUIRED_FIRST_NAME_ERR_MSG,
+  REQUIRED_LAST_NAME_ERR_MSG,
+} from "../errors";
 
 const router = Router();
 
@@ -23,54 +30,27 @@ const returnUnauthorized = (res) => {
 };
 
 router.post("/signup", [
-  body('email').isEmail().withMessage("The 'Email' is required."),
-  body('password').isStrongPassword().withMessage("The 'Password' is required."),
-  body('firstName').notEmpty().withMessage("The 'First name' is required."),
-  body('lastName').notEmpty().withMessage("The 'Last name' is required.")
-], (req, res) => {
+  body('email').isEmail().withMessage(REQUIRED_EMAIL_ERR_MSG),
+  body('password').isStrongPassword().withMessage(REQUIRED_PASSWORD_ERR_MSG),
+  body('firstName').notEmpty().withMessage(REQUIRED_FIRST_NAME_ERR_MSG),
+  body('lastName').notEmpty().withMessage(REQUIRED_LAST_NAME_ERR_MSG)
+], async (req, res) => {
   const errors: Result<ValidationError> = validationResult(req);
 
-  if (!errors.isEmpty()) {
-    throw new InvalidInputError(errors.array())
-  } else {
-    User
-      .findOne({ email: req.body.email })
-      .then(async (existingUser) => {
-        if (existingUser) {
-          return res.status(422).send("User with such 'Email' already exists.");
-        }
-        else {
-          const newUser = new User({
-            email: req.body.email,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            gender: req.body.gender
-          });
+  if (!errors.isEmpty()) throw new InvalidInputError(errors.array());
 
-          const registeredUser = await User.register(newUser, req.body.password);
-          const userDoc = await User.findOne({ email: registeredUser.email });
+  const newUser = new User({
+    email: req.body.email,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    gender: req.body.gender
+  });
 
-          if (userDoc) {
-            const accessToken: string = getAccessToken({ _id: userDoc._id });
-            const refreshToken: string = getRefreshToken({ _id: userDoc._id });
-
-            await userDoc.update({
-              $set: {
-                sessions: [
-                  { authStrategy: 'jwt', refreshToken },
-                  ...userDoc.sessions?.filter(x => x.authStrategy != 'jwt') || []
-                ]
-              }
-            });
-
-            res.cookie(AUTH_REFRESH_COOKIE_KEY || '', refreshToken, refreshTokenCookieOptions);
-            res.cookie(AUTH_ACCESS_COOKIE_KEY || '', accessToken, accessTokenCookieOptions);
-            return res.status(201).send({ success: true, accessToken });
-          }
-
-          return res.status(500).send("Something went wrong!");
-        }
-      });
+  try {
+    const registeredUser: IUserDocument = await User.register(newUser, req.body.password);
+    return res.status(201).send({ success: true, email: registeredUser.email });
+  } catch (err) {
+    throw new DuplicatedUserError();
   }
 });
 

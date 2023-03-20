@@ -1,5 +1,6 @@
 import { Document, model, PassportLocalModel, Schema } from "mongoose";
 import passportLocalMongoose from "passport-local-mongoose";
+import { DuplicatedUserError } from "../errors";
 import { Gender } from "./enums/gender";
 import { ISessionDocument, SessionSchema } from "./session";
 
@@ -43,7 +44,7 @@ const RoleSchema = new Schema<IRole>({
 });
 
 // Schema
-const UserSchema = new Schema<IUserDocument>({
+const userSchema = new Schema<IUserDocument>({
   email: { type: String, required: true, unique: true },
   emailVerified: { type: Boolean },
   firstName: { type: String, required: false },
@@ -58,16 +59,15 @@ const UserSchema = new Schema<IUserDocument>({
   externalOAuths: [ExternalOAuthSchema],
 });
 
-UserSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
-const User = model<IUserDocument, IUserModel>("users", UserSchema);
+userSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 
-UserSchema.pre('save', async function preSaveFunction(this: IUserDocument, next) {
+userSchema.pre('save', async function preSaveFunction(this: IUserDocument, next) {
   const existing = await User.findOne({ email: this.email });
   if (existing)
-    throw new Error('A user with such eamil already exists.');
+    throw new DuplicatedUserError();
   next();
 });
 
-UserSchema.statics.buildUser = (args: IUser) => new User(args);
+const User = model<IUserDocument, IUserModel>("users", userSchema);
 
 export default User;
