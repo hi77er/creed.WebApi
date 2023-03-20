@@ -1,5 +1,6 @@
 const { default: mongoose } = require("mongoose");
 import express from "express";
+import 'express-async-errors';
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
@@ -9,6 +10,7 @@ import {
   AUTH_REFRESH_TOKEN_SECRET,
   CORS_WHITELISTED_DOMAINS
 } from './keys';
+import { errorHandler } from "./middlewares";
 import authRouter from "./routes/authRoutes";
 import dashboardRouter from "./routes/dashboardRoutes";
 import facebookOAuthRouter from "./routes/facebookOAuthRoutes";
@@ -52,5 +54,7 @@ app.use("/oauth/facebook", facebookOAuthRouter);
 app.use("/oauth/github", githubOAuthRouter);
 app.use("/oauth/google", googleOAuthRouter);
 app.use("/api/user", userRouter);
+
+app.use(errorHandler);
 
 export default app;

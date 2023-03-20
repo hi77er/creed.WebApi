@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { body, validationResult } from 'express-validator';
+import { body, Result, ValidationError, validationResult } from 'express-validator';
 import User from "../models/user";
 import passport from "passport";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -13,6 +13,7 @@ import {
   getAccessToken,
   getRefreshToken
 } from "../services/auth/authenticate";
+import { InvalidInputError } from "../errors";
 
 const router = Router();
 
@@ -22,21 +23,21 @@ const returnUnauthorized = (res) => {
 };
 
 router.post("/signup", [
-  body('email').isEmail().withMessage({ name: "MissingEmailError", message: "The 'Email' is required." }),
-  body('password').isStrongPassword().withMessage({ name: "MissingPasswordError", message: "The 'Password' is required." }),
-  body('firstName').notEmpty().withMessage({ name: "MissingFirstNameError", message: "The 'First name' is required." }),
-  body('lastName').notEmpty().withMessage({ name: "MissingLastNameError", message: "The 'Last name' is required." })
+  body('email').isEmail().withMessage("The 'Email' is required."),
+  body('password').isStrongPassword().withMessage("The 'Password' is required."),
+  body('firstName').notEmpty().withMessage("The 'First name' is required."),
+  body('lastName').notEmpty().withMessage("The 'Last name' is required.")
 ], (req, res) => {
-  const errors = validationResult(req);
-  // Verify that first name is not empty
+  const errors: Result<ValidationError> = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return res.status(400).send({ errors: errors.array() });
+    throw new InvalidInputError(errors.array())
   } else {
     User
       .findOne({ email: req.body.email })
       .then(async (existingUser) => {
         if (existingUser) {
-          return res.status(400).send([{ name: "ExistingUserError", message: "User with such 'Email' already exists." }]);
+          return res.status(422).send("User with such 'Email' already exists.");
         }
         else {
           const newUser = new User({
@@ -67,7 +68,7 @@ router.post("/signup", [
             return res.status(201).send({ success: true, accessToken });
           }
 
-          return res.status(500).send([{ success: false, message: "Something went wrong!" }]);
+          return res.status(500).send("Something went wrong!");
         }
       });
   }
@@ -99,7 +100,7 @@ router.post(
       res.send({ success: true, accessToken });
     }
 
-    res.status(400).send({ success: true, message: "Bad request." });
+    res.status(422).send({ success: true, message: "Bad request." });
   });
 
 router.post(
