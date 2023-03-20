@@ -21,6 +21,7 @@ import {
   REQUIRED_FIRST_NAME_ERR_MSG,
   REQUIRED_LAST_NAME_ERR_MSG,
 } from "../errors";
+import { UserSignedUp } from "../events";
 
 const router = Router();
 
@@ -47,8 +48,9 @@ router.post("/signup", [
   });
 
   try {
-    const registeredUser: IUserDocument = await User.register(newUser, req.body.password);
-    return res.status(201).send({ success: true, email: registeredUser.email });
+    const created: IUserDocument = await User.register(newUser, req.body.password);
+    const event = new UserSignedUp(created);
+    return res.status(event.statusCode).send(event.serializeRest());
   } catch (err) {
     throw new DuplicatedUserError();
   }
