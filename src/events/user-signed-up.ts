@@ -8,13 +8,17 @@ export type UserSignedUpRestPayload = {
 
 export default class UserSignedUp<TRest = unknown> extends BaseAuthEvent {
   protected user: IUserDocument;
-  statusCode = 201;
+  protected statusCode = 201;
 
   constructor(userDoc: IUserDocument) {
     super();
 
     this.user = userDoc;
   }
+
+  getStatusCode(): number {
+    return this.statusCode;
+  };
 
   serializeRest(): UserSignedUpRestPayload {
     return { id: this.user._id, email: this.user.email };

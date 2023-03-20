@@ -50,7 +50,7 @@ router.post("/signup", [
   try {
     const created: IUserDocument = await User.register(newUser, req.body.password);
     const event = new UserSignedUp(created);
-    return res.status(event.statusCode).send(event.serializeRest());
+    return res.status(event.getStatusCode()).send(event.serializeRest());
   } catch (err) {
     throw new DuplicatedUserError();
   }

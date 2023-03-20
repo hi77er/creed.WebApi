@@ -1,5 +1,6 @@
 export abstract class BaseAuthEvent<TRest = unknown> {
-  abstract statusCode: number;
+  protected abstract statusCode: number;
 
+  abstract getStatusCode(): number;
   abstract serializeRest(): TRest;
 };

@@ -15,7 +15,7 @@ it('should have status code 200', async () => {
   expect(created).toBeDefined();
   expect(created.email).toEqual(user.email);
   expect(event).toBeDefined();
-  expect(event.statusCode).toEqual(201);
+  expect(event.getStatusCode()).toEqual(201);
 })
 
 it('should expose only id and email when when serializing to REST', async () => {
