@@ -105,7 +105,9 @@ it('should return 422 if first or last name are missing, or empty', async () => 
 
 it('should save the signed up user to the database if the input data is valid', async () => {
   const response = await request(app).post('/auth/signup').send(user).expect(201);
-  expect(response.body.success).toBe(true);
+  expect(response.body.email).toBeDefined();
+  expect(response.body.email).toEqual(user.email);
+  expect(response.body.id).toBeDefined();
 
   const registeredUser = await User.findOne({ email: user.email });
 
