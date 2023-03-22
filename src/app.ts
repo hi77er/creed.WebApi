@@ -16,8 +16,8 @@ import dashboardRouter from "./routes/dashboardRoutes";
 import facebookOAuthRouter from "./routes/facebookOAuthRoutes";
 import googleOAuthRouter from "./routes/googleOAuthRoutes";
 import githubOAuthRouter from "./routes/githubOAuthRoutes";
+import healthRouter from "./routes/healthRoutes";
 import userRouter from "./routes/userRoutes";
-
 
 // Configure App
 const app = express();
@@ -53,6 +53,7 @@ app.use("/auth", authRouter);
 app.use("/oauth/facebook", facebookOAuthRouter);
 app.use("/oauth/github", githubOAuthRouter);
 app.use("/oauth/google", googleOAuthRouter);
+app.use("/health", healthRouter);
 app.use("/api/user", userRouter);
 
 app.use(errorHandler);
