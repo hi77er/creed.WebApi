@@ -1,18 +1,17 @@
-import { model } from "mongoose";
 import { User } from "../../../models";
-import { serializeUser, deserializeUser, use } from "passport";
-import { Strategy as FacebookStrategy } from "passport-facebook";
+import passport from "passport";
+import { Strategy as FacebookStrategy, StrategyOption } from "passport-facebook";
 import {
   AUTH_FACEBOOK_CLIENT_ID,
   AUTH_FACEBOOK_CLIENT_SECRET,
   AUTH_FACEBOOK_CALLBACK
 } from '../../../keys';
 
-serializeUser((user, done) => {
+passport.serializeUser((user, done) => {
   done(null, user._id);
 });
 
-deserializeUser((email, done) => {
+passport.deserializeUser((email, done) => {
   User
     .findOne({ email })
     .then((user) => {
@@ -20,15 +19,17 @@ deserializeUser((email, done) => {
     });
 });
 
-use(
+const opts: StrategyOption = {
+  clientID: AUTH_FACEBOOK_CLIENT_ID || '',
+  clientSecret: AUTH_FACEBOOK_CLIENT_SECRET || '',
+  callbackURL: AUTH_FACEBOOK_CALLBACK || '',
+  profileFields: ["email", "name"],
+  enableProof: true
+};
+
+passport.use(
   new FacebookStrategy(
-    {
-      clientID: AUTH_FACEBOOK_CLIENT_ID || '',
-      clientSecret: AUTH_FACEBOOK_CLIENT_SECRET || '',
-      callbackURL: AUTH_FACEBOOK_CALLBACK || '',
-      profileFields: ["email", "name"],
-      enableProof: true
-    },
+    opts,
     async (accessToken, refreshToken, profile, done) => {
       if (!profile || !profile.emails || !profile.emails[0] || !profile.emails[0].value) {
         done('Unauthorized', null);

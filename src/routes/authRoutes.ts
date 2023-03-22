@@ -13,8 +13,7 @@ import {
   getAccessToken,
   getRefreshToken
 } from "../services/auth/authenticate";
-import { InvalidInputError } from "../errors";
-import { DuplicatedUserError } from "../errors/duplicated-user-error";
+import { DuplicatedUserError, InvalidInputError } from "../errors";
 import {
   REQUIRED_EMAIL_ERR_MSG,
   REQUIRED_PASSWORD_ERR_MSG,

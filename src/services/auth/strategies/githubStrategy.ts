@@ -1,6 +1,5 @@
-import { model } from "mongoose";
-import { serializeUser, deserializeUser, use } from "passport";
-import { Strategy as GitHubStrategy } from "passport-github2";
+import passport from "passport";
+import { Strategy as GitHubStrategy, StrategyOptions } from "passport-github2";
 import { User } from "../../../models";
 import {
   AUTH_GITHUB_CLIENT_ID,
@@ -8,11 +7,11 @@ import {
   AUTH_GITHUB_CALLBACK,
 } from "../../../keys";
 
-serializeUser((user, done) => {
+passport.serializeUser((user, done) => {
   done(null, user._id);
 });
 
-deserializeUser((email, done) => {
+passport.deserializeUser((email, done) => {
   User
     .findOne({ email })
     .then((user) => {
@@ -20,13 +19,15 @@ deserializeUser((email, done) => {
     });
 });
 
-use(
+const opts: StrategyOptions = {
+  clientID: AUTH_GITHUB_CLIENT_ID || '',
+  clientSecret: AUTH_GITHUB_CLIENT_SECRET || '',
+  callbackURL: AUTH_GITHUB_CALLBACK || '',
+};
+
+passport.use(
   new GitHubStrategy(
-    {
-      clientID: AUTH_GITHUB_CLIENT_ID || '',
-      clientSecret: AUTH_GITHUB_CLIENT_SECRET || '',
-      callbackURL: AUTH_GITHUB_CALLBACK || '',
-    },
+    opts,
     async (accessToken, refreshToken, profile, done) => {
       if (!profile || !profile.emails || !profile.emails[0] || !profile.emails[0].value)
         done('Unauthorized', null);

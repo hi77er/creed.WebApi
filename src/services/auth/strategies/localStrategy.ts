@@ -1,20 +1,16 @@
-import { serializeUser, use } from "passport";
-import { model } from "mongoose";
-import { Strategy as LocalStrategy } from "passport-local";
-import { IUser } from "../../../models/user";
+import passport from "passport";
+import { Strategy as LocalStrategy, IStrategyOptions } from "passport-local";
+import { User } from "../../../models";
 
-const User = model<IUser>('User');
+const opts: IStrategyOptions = {
+  usernameField: 'email',
+  passwordField: 'password'
+};
 
 //Called during login/sign up.
-use(
-  new LocalStrategy(
-    {
-      usernameField: 'email',
-      passwordField: 'password'
-    },
-    User.authenticate()
-  )
+passport.use(
+  new LocalStrategy(opts, User.authenticate())
 );
 
 //called while after logging in / signing up to set user details in req.user
-serializeUser(User.serializeUser);
+passport.serializeUser(User.serializeUser);

@@ -2,19 +2,21 @@
   "name": "server",
   "version": "1.0.0",
   "description": "This is a POC application that serves for training purposes.",
-  "type": "module",
   "main": "index.js",
   "engines": {
     "node": "16.16.0",
     "npm": "8.11.0"
   },
   "scripts": {
+    "client": "npm --prefix ../creed.Client/ run start",
     "build": "tsc -b -v",
     "start": "node index.js",
     "test": "jest --no-cache",
-    "server": "nodemon index.js",
-    "client": "npm --prefix ../creed.Client/ run start",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "service": "nodemon index.js",
+    "dev": "concurrently \"npm run service\" \"npm run client\"",
+    "docker:build": "tsc -b -v && docker build . --tag kdkrastev89/creed-authentication:latest",
+    "docker:run": "tsc -b -v && docker build . --tag kdkrastev89/creed-authentication:latest && docker run --env PORT=80 --env MONGO_DB_CONNECTION_STRING=connectionstringhere --env AUTH_FACEBOOK_CLIENT_ID=110460608594145 --env AUTH_FACEBOOK_CLIENT_SECRET=a5c04e1366fa2683631d3c1f33be3e20 --env AUTH_FACEBOOK_CALLBACK=//oauth//facebook//callback --env AUTH_GITHUB_CLIENT_ID=2d2a0766ee97695c9099 --env AUTH_GITHUB_CLIENT_SECRET=e7ede9e16f000dd316e09a7d78051dac1704360d --env AUTH_GITHUB_CALLBACK=//oauth//github//callback --env AUTH_GOOGLE_CLIENT_ID=450487781777-dqqg7ep8rtol5vmb47riauiv8mllrb03.apps.googleusercontent.com --env AUTH_GOOGLE_CLIENT_SECRET=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 --env AUTH_GOOGLE_CALLBACK=//oauth//google//callback --env AUTH_ACCESS_COOKIE_KEY=ghjkljhgfhjkhgfhkjlnkjhgkjblknhg47639016adkjkad1791 --env AUTH_ACCESS_TOKEN_SECRET=jdsd-dahdhd-kjfjdhrhrerj-uurhr-jjge --env AUTH_ACCESS_TOKEN_EXPIRY_SECONDS=60 --env AUTH_REFRESH_COOKIE_KEY=64324gfhjkhgfhkjlnkjhgkjblknhg47639016adfsd2356 --env AUTH_REFRESH_TOKEN_SECRET=fgkjddshfdjh773bdjsj84-jdjd774 --env AUTH_REFRESH_TOKEN_EXPIRY_SECONDS=300 --env CORS_WHITELISTED_DOMAINS=http://localhost:3000 --env PORT=80 kdkrastev89/creed-authentication:latest",
+    "docker:push": "tsc -b -v && docker push kdkrastev89/creed-emailing:latest"
   },
   "author": "Kalin Krastev",
   "license": "ISC",

@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../../app";
 import { expect, it } from '@jest/globals';
-import { User } from "../../models";
+import { IUserDocument, User } from "../../models";
 
 // INFO: Valid values
 let email = 'qwert2023@gmail.com';
@@ -121,4 +121,14 @@ it('should save the signed up user to the database if the input data is valid', 
 it('does not allow saving a user with a duplicate email', async () => {
   await request(app).post('/auth/signup').send(user).expect(201);
   await request(app).post('/auth/signup').send(user).expect(422);
+});
+
+it('should encrypt the password when a new user is signied up', async () => {
+  const response = await request(app).post('/auth/signup').send(user).expect(201);
+
+  const registeredUser = await User.findByUsername(response.body.email, true);
+  expect(registeredUser).toBeDefined();
+  expect(registeredUser).not.toBeNull();
+  expect(registeredUser.hash?.length || 0).toBeGreaterThan(0);
+  expect(registeredUser.hash).not.toEqual(user.password);
 });

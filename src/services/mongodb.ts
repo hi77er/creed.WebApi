@@ -6,4 +6,4 @@ set('strictQuery', false);
 
 connect(MONGO_DB_CONNECTION_STRING || '')
   .then(() => console.log("MongoDB Connected."))
-  .catch((err) => console.log("err"));
+  .catch((err) => console.log("mongodb err during connection"));

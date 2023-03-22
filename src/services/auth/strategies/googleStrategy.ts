@@ -1,6 +1,5 @@
-import { model } from "mongoose";
-import { serializeUser, deserializeUser, use } from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import passport from "passport";
+import { Strategy as GoogleStrategy, StrategyOptions } from "passport-google-oauth20";
 import { User } from "../../../models";
 import {
   AUTH_GOOGLE_CLIENT_ID,
@@ -8,11 +7,11 @@ import {
   AUTH_GOOGLE_CALLBACK,
 } from "../../../keys";
 
-serializeUser((user, done) => {
+passport.serializeUser((user, done) => {
   done(null, user._id);
 });
 
-deserializeUser((email, done) => {
+passport.deserializeUser((email, done) => {
   User
     .findOne({ email })
     .then((user) => {
@@ -20,14 +19,16 @@ deserializeUser((email, done) => {
     });
 });
 
-use(
+const opts: StrategyOptions = {
+  clientID: AUTH_GOOGLE_CLIENT_ID || '',
+  clientSecret: AUTH_GOOGLE_CLIENT_SECRET || '',
+  callbackURL: AUTH_GOOGLE_CALLBACK,
+  proxy: true
+};
+
+passport.use(
   new GoogleStrategy(
-    {
-      clientID: AUTH_GOOGLE_CLIENT_ID || '',
-      clientSecret: AUTH_GOOGLE_CLIENT_SECRET || '',
-      callbackURL: AUTH_GOOGLE_CALLBACK,
-      proxy: true
-    },
+    opts,
     async (accessToken, refreshToken, profile, done) => {
       if (!profile || !profile.emails || !profile.emails[0] || !profile.emails[0].value) {
         done('Unauthorized', undefined);

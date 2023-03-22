@@ -1,4 +1,6 @@
-require('dotenv').config();
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 export const NODE_ENV: string | undefined = process.env.NODE_ENV
 export const PORT: string | undefined = process.env.PORT

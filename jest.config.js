@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   preset: 'ts-jest',
   setupFilesAfterEnv: [
     "./src/test-utils/setup-after-env.ts"
@@ -8,5 +8,6 @@ export default {
     "^.+\\.(js|jsx)$": "babel-jest",
   },
   testEnvironment: 'node',
-  testPathIgnorePatterns: [".d.ts", ".js"]
+  testPathIgnorePatterns: [".d.ts", ".js"],
+  testTimeout: 15 * 1000
 };

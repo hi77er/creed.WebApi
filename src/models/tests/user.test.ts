@@ -1,32 +1,34 @@
 import { expect, it } from '@jest/globals';
+import { ObjectId } from 'bson';
 import {
   BaseCustomError,
   DuplicatedUserError,
   USER_ALREADY_EXISTS_ERR_MSG
 } from '../../errors';
 import {
-  IUser,
+  IUserDocument,
   User
 } from "../../models";
 
-it('should not save a user with a duplicate email', async () => {
-  const user: IUser = {
-    email: 'unique2023@email.com',
-    emailVerified: false,
-    firstName: 'John',
-    lastName: 'Steinback'
-  };
+const userData = {
+  email: 'unique2023@email.com',
+  emailVerified: false,
+  firstName: 'John',
+  lastName: 'Steinback'
+};
+const password = '!234Qwer';
 
-  const created = await User.create(user);
+it('should not save a user with a duplicate email', async () => {
+  const created: IUserDocument = await User.register(new User(userData), password);
   expect(created).toBeDefined();
-  expect(created.email).toEqual(user.email);
-  expect(created.firstName).toEqual(user.firstName);
-  expect(created.lastName).toEqual(user.lastName);
+  expect(created.email).toEqual(userData.email);
+  expect(created.firstName).toEqual(userData.firstName);
+  expect(created.lastName).toEqual(userData.lastName);
 
   let error: DuplicatedUserError | undefined;
 
   try {
-    await User.create(user);
+    await User.create(new User(userData));
   } catch (err) {
     error = err;
   }
@@ -37,4 +39,11 @@ it('should not save a user with a duplicate email', async () => {
   expect(error).toBeInstanceOf(BaseCustomError);
   expect(serializedErrorOutput).toBeDefined();
   expect(serializedErrorOutput?.errors[0].message).toEqual(USER_ALREADY_EXISTS_ERR_MSG);
+});
+
+it('should encrypt the password when craeting the user', async () => {
+  const created: IUserDocument = await User.register(new User(userData), password);
+  expect(created).toBeDefined();
+  expect(created.hash).toBeDefined();
+  expect(created.hash).not.toEqual(password);
 });

@@ -1,6 +1,5 @@
-import { model } from "mongoose";
-import { use } from "passport";
-import { Strategy as JwtStrategy } from "passport-jwt";
+import passport from "passport";
+import { Strategy as JwtStrategy, StrategyOptions } from "passport-jwt";
 import { User } from "../../../models";
 import {
   AUTH_ACCESS_COOKIE_KEY,
@@ -23,14 +22,14 @@ const jwtExtractor = (req) => {
 // INFO: The JWT Strategy checks both:
 //    - the Signed cookies for cookie AUTH_ACCESS_COOKIE_KEY
 //    - and the request body for 'accessToken' parameter
-const opts = {
+const opts: StrategyOptions = {
   jwtFromRequest: jwtExtractor,
   secretOrKey: AUTH_ACCESS_TOKEN_SECRET
 };
 
 // Used by the authenticated requests to deserialize the user,
 // i.e., to fetch user details from the JWT.
-use(
+passport.use(
   new JwtStrategy(
     opts,
     (decodedJwtPayload, done) => {
